@@ -551,7 +551,7 @@ a.product-card-link:hover .product-media img {
   font-size: 1.35rem;
   font-weight: 600;
   line-height: 1.25;
-  min-height: auto;
+  min-height: 2.5em;   /* 约等于两行，短标题也占同样高度 */
   margin: 0;
   color: var(--ink);
 }
@@ -560,7 +560,8 @@ a.product-card-link:hover .product-media img {
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--accent);
-  margin: 0.15em 0 0;
+  margin: 0.35em 0 0;  /* 与标题间距固定 */
+  min-height: 1.4em;    /* 可选，价钱本身高度一致 */
 }
 .btn-view {
   margin-top: auto;
