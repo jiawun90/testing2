@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JW Just Wishes — Personalised Gifts, Made With Love</title>
+<meta name="description" content="Custom 3D-printed and laser-engraved keepsakes, personalised gift boxes and party favours, made in Singapore.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="images/logo.png">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+    <a href="index.html" class="brand">
+      <img src="images/NewLogo.png" alt="JW Just Wishes" class="brand-mark-img">
+      <span class="brand-word">JW Just Wishes</span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="shop.html">Shop</a>
+      <a href="how.html">How it works</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <button class="cart-toggle" id="cartToggle" aria-label="Open cart">
+      Cart <span id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-copy">
+    <p class="eyebrow">Singapore · Made to order</p>
+    <h1>Birthday joy,<br><em>personalised</em></h1>
+    <p class="lede">Curated goodie bags and keepsakes — personalised name tags, theme cards, and thoughtful party favours, crafted for celebrations that feel like you.</p>
+    <div class="hero-actions">
+      <a href="#collections" class="btn btn-primary">See the goodies</a>
+      <a href="how.html" class="btn">How it works</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="hero-carousel-container">
+      <div class="carousel-track" id="carouselTrack">
+        <div class="carousel-card active">
+          <img src="images/p1.jpg" alt="Signature 3D Wonder Box">
+          <h4>Signature 3D Wonder Box</h4>
+        </div>
+        <div class="carousel-card">
+          <img src="images/p2.jpg" alt="Engraved Canvas Pack">
+          <h4>Engraved Canvas Pack</h4>
+        </div>
+        <div class="carousel-card">
+          <img src="images/p3.jpg" alt="Magic Routine SPARK Pack">
+          <h4>Magic Routine SPARK</h4>
+        </div>
+        <div class="carousel-card">
+          <img src="images/p4.jpg" alt="Magic Routine CHARM Pack">
+          <h4>Magic Routine CHARM</h4>
+        </div>
+        <div class="carousel-card">
+          <img src="images/p5.jpg" alt="Standard Fun Pack">
+          <h4>Standard Fun Pack</h4>
+        </div>
+        <div class="carousel-card">
+          <img src="images/p6.jpg" alt="Standard Discovery Pack">
+          <h4>Standard Discovery Pack</h4>
+        </div>
+        <div class="carousel-card">
+          <img src="images/p7.jpg" alt="Standard Creative Pack">
+          <h4>Standard Creative Pack</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features-strip">
+  <div class="features-grid">
+    <div class="feature-card">
+      <span class="feature-icon">01</span>
+      <h3>Curated & custom</h3>
+      <p>Pre-packed party bags or tailored to your theme — so you can focus on the celebration.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">02</span>
+      <h3>Personal keepsakes</h3>
+      <p>3D-printed name tags, laser-engraved details, and name cards made for each guest.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-icon">03</span>
+      <h3>Based in Singapore</h3>
+      <p>Local turnarounds, reliable delivery, and designs made for SG celebrations.</p>
+    </div>
+  </div>
+</section>
+
+<section class="shop" style="padding-top: 4rem;">
+  <div class="section-head">
+    <p class="eyebrow">Popular picks</p>
+    <h2>Featured packs</h2>
+    <p class="shop-note">Every pack includes a complimentary wish card. Add a personalised 3D-printed name tag when you customise.</p>
+  </div>
+  <div class="product-grid" id="popularGrid"></div>
+  <div style="text-align: center; margin-top: 2.75rem;">
+    <a href="shop.html" class="btn">View all products</a>
+  </div>
+</section>
+
+<section class="collections-section" id="collections">
+  <div class="section-head">
+    <p class="eyebrow">Collections</p>
+    <h2>Pick a playful vibe</h2>
+  </div>
+  <div class="collection-cards-container">
+    <button type="button" class="collection-card active" data-filter-category="all" onclick="filterShop('all', this)">
+      <span class="collection-emoji" aria-hidden="true">🎁</span>
+      <span class="collection-name">All treats</span>
+    </button>
+    <button type="button" class="collection-card" data-filter-category="signature" onclick="filterShop('signature', this)">
+      <span class="collection-emoji" aria-hidden="true">✨</span>
+      <span class="collection-name">3D Magic</span>
+    </button>
+    <button type="button" class="collection-card" data-filter-category="magic-routine" onclick="filterShop('magic-routine', this)">
+      <span class="collection-emoji" aria-hidden="true">🌟</span>
+      <span class="collection-name">Routine Fun</span>
+    </button>
+    <button type="button" class="collection-card" data-filter-category="standard" onclick="filterShop('standard', this)">
+      <span class="collection-emoji" aria-hidden="true">🎈</span>
+      <span class="collection-name">Party Packs</span>
+    </button>
+  </div>
+  <div class="product-grid" id="productGrid"></div>
+</section>
+
+<section class="cta-banner">
+  <p class="eyebrow">Custom & bulk</p>
+  <h2>Need a theme of your own, or gifts for the whole class?</h2>
+  <p class="lede">We design custom themes for birthdays, events, and corporate gifting.</p>
+  <a href="contact.html" class="btn btn-primary">Get in touch</a>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="brand footer-brand">
+        <span class="logo-chip"><img src="images/NewLogo.png" alt="" class="brand-mark-img"></span>
+        <span class="brand-word">JW Just Wishes</span>
+      </div>
+      <p class="footer-tag">Making every wish come true, one gift at a time.<br>Based in Singapore.</p>
+    </div>
+    <div class="footer-links">
+      <a href="shipping.html">Shipping</a>
+      <a href="https://facebook.com/profile.php?id=61590632560193" target="_blank" rel="noopener" aria-label="Facebook" class="icon-only-link"><i class="fa-brands fa-facebook"></i></a>
+      <a href="https://instagram.com/jwjustwishes" target="_blank" rel="noopener" aria-label="Instagram" class="icon-only-link"><i class="fa-brands fa-instagram"></i></a>
+      <a href="https://wa.me/6592359383" target="_blank" rel="noopener" aria-label="WhatsApp" class="icon-only-link"><i class="fa-brands fa-whatsapp"></i></a>
+    </div>
+  </div>
+</footer>
+
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer">
+  <div class="cart-head">
+    <h3>Your cart</h3>
+    <button id="cartClose" aria-label="Close">&times;</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot">
+    <div class="shipping-nudge" id="shippingNudge"></div>
+    <div class="cart-subtotal"><span>Subtotal</span><span id="cartSubtotal">S$0.00</span></div>
+    <div class="cart-subtotal cart-shipping-row"><span>Shipping</span><span id="cartShipping">S$0.00</span></div>
+    <div class="cart-subtotal cart-total-row"><span>Total</span><span id="cartTotal">S$0.00</span></div>
+    <div class="discount-section">
+      <div class="discount-input-group">
+        <input type="text" id="discountCodeInput" placeholder="Discount code" autocomplete="off">
+        <button type="button" id="applyDiscountBtn">Apply</button>
+      </div>
+      <p id="discountMessage" class="discount-message"></p>
+    </div>
+    <button class="btn btn-primary btn-block" id="checkoutBtn">Checkout</button>
+    <p class="cart-note">Secure payment via HitPay.</p>
+  </div>
+</aside>
+
+<script src="script.js"></script>
+</body>
+</html>

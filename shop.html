@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop — JW Just Wishes</title>
+<meta name="description" content="Browse personalised gift packs and keepsakes.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="images/logo.png">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+    <a href="index.html" class="brand">
+      <img src="images/NewLogo.png" alt="JW Just Wishes" class="brand-mark-img">
+      <span class="brand-word">JW Just Wishes</span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="shop.html">Shop</a>
+      <a href="how.html">How it works</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+    <button class="cart-toggle" id="cartToggle" aria-label="Open cart">
+      Cart <span id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<section class="shop" id="shop" style="padding-top: 3.5rem;">
+  <div class="section-head">
+    <p class="eyebrow">The collection</p>
+    <h2>Shop all packs</h2>
+    <p class="shop-note">Themes available on select packs. Every order includes a complimentary wish card.</p>
+  </div>
+
+  <div class="shop-filters" role="tablist" aria-label="Categories">
+    <button type="button" class="shop-filter-pill active" data-filter-category="all" onclick="filterShop('all', this)">All treats</button>
+    <button type="button" class="shop-filter-pill" data-filter-category="signature" onclick="filterShop('signature', this)">3D Magic</button>
+    <button type="button" class="shop-filter-pill" data-filter-category="magic-routine" onclick="filterShop('magic-routine', this)">Routine Fun</button>
+    <button type="button" class="shop-filter-pill" data-filter-category="standard" onclick="filterShop('standard', this)">Party Packs</button>
+  </div>
+
+  <div class="product-grid" id="productGrid"></div>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      <div class="brand footer-brand">
+        <span class="logo-chip"><img src="images/NewLogo.png" alt="" class="brand-mark-img"></span>
+        <span class="brand-word">JW Just Wishes</span>
+      </div>
+      <p class="footer-tag">Based in Singapore.</p>
+    </div>
+    <div class="footer-links">
+      <a href="shipping.html">Shipping</a>
+      <a href="contact.html">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<div class="cart-overlay" id="cartOverlay"></div>
+<aside class="cart-drawer" id="cartDrawer">
+  <div class="cart-head">
+    <h3>Your cart</h3>
+    <button id="cartClose" aria-label="Close">&times;</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot">
+    <div class="shipping-nudge" id="shippingNudge"></div>
+    <div class="cart-subtotal"><span>Subtotal</span><span id="cartSubtotal">S$0.00</span></div>
+    <div class="cart-subtotal cart-shipping-row"><span>Shipping</span><span id="cartShipping">S$0.00</span></div>
+    <div class="cart-subtotal cart-total-row"><span>Total</span><span id="cartTotal">S$0.00</span></div>
+    <div class="discount-section">
+      <div class="discount-input-group">
+        <input type="text" id="discountCodeInput" placeholder="Discount code" autocomplete="off">
+        <button type="button" id="applyDiscountBtn">Apply</button>
+      </div>
+      <p id="discountMessage" class="discount-message"></p>
+    </div>
+    <button class="btn btn-primary btn-block" id="checkoutBtn">Checkout</button>
+    <p class="cart-note">Secure payment via HitPay.</p>
+  </div>
+</aside>
+
+<script src="script.js"></script>
+</body>
+</html>
