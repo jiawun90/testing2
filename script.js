@@ -4,7 +4,7 @@
 // and handing off to HitPay Checkout via /api/create-checkout-session
 // =============================================================
 
-// 运费规则：未满这个金额（分）收取固定运费；达到或超过则免运费。
+// 运费规则：未满这个金额（分）收取固定运费；达到或超过则免运费。·
 // 这两个数字会同时用在①购物车画面显示 ②HitPay结账时真正收取的金额，
 // 改这里的数字，购物车提示文字和实际收费会一起更新，不用改两个地方。
 const FREE_SHIPPING_THRESHOLD_CENTS = 10000; // S$100.00 — 未满这个金额收运费
@@ -583,7 +583,8 @@ function renderProductPage() {
         ${product.image ? `<img src="${product.image}" alt="${product.name}">` : ""}
       </div>
       <div class="product-detail-info">
-        <h1>${product.name}${product.collectionLabel ? ` <span class="collection-label">${product.collectionLabel}</span>` : ""}</h1>
+        ${product.collectionLabel ? `<p class="eyebrow">${product.collectionLabel}</p>` : ''}
+        <h1 class="product-detail-title">${product.name}</h1>
         <p class="product-price product-detail-price">${product.priceLabel}</p>
         <p class="product-desc">${product.desc}</p>
 
