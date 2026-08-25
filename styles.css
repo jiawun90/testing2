@@ -474,11 +474,21 @@ em { font-style: italic; color: var(--accent); }
   grid-template-columns: repeat(4, 1fr);
   gap: 1.75rem 1.25rem;
 }
-@media (max-width: 1000px) {
-  .product-grid { grid-template-columns: repeat(2, 1fr); }
+
+/* 平板与大屏手机 (<= 900px)：双列排列 */
+@media (max-width: 900px) {
+  .product-grid { 
+    grid-template-columns: repeat(2, 1fr) !important; 
+    gap: 1.25rem !important; /* 调整间距，防止双列太拥挤 */
+  }
 }
+
+/* 手机端 (<= 520px)：依然保持双列 */
 @media (max-width: 520px) {
-  .product-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .product-grid { 
+    grid-template-columns: repeat(2, 1fr) !important; 
+    gap: 0.75rem !important; /* 缩小卡片间的缝隙，留出更多显示空间 */
+  }
 }
 
 .product-card,
