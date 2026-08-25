@@ -433,54 +433,56 @@ em { font-style: italic; color: var(--accent); }
 a.product-card-link {
   display: flex;
   flex-direction: column;
-  background: transparent;
+  background: #fff;
   border: none;
-  box-shadow: none !important;
-  border-radius: 0;
-  overflow: visible;
+  border-radius: 18px;
+  overflow: hidden;
   text-decoration: none;
   color: inherit;
   height: 100%;
-  transition: none;
+  box-shadow: 0 6px 22px rgba(42, 51, 64, 0.07) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .product-card:hover,
 a.product-card-link:hover {
-  transform: none;
-  box-shadow: none !important;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(42, 51, 64, 0.12) !important;
 }
 .product-media {
-  aspect-ratio: 3/4;
-  background: linear-gradient(160deg, #ffeef5 0%, #eef4ff 100%);
+  aspect-ratio: 4/3;
+  background: #f3f0eb;
   overflow: hidden;
   position: relative;
-  border-radius: 20px;
+  border-radius: 0;
 }
 .product-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.45s ease;
 }
 a.product-card-link:hover .product-media img {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 .product-body {
-  padding: 1.1rem 0 0;
+  padding: 1.15rem 1.2rem 1.35rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   flex: 1;
+  background: #fff;
 }
 .tag-container { min-height: 1.2em; }
 .collection-label {
-  font-size: 0.65rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: none;
-  padding: 0;
-  border-radius: 0;
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #5c6b4f;
+  background: #eae0c9;
+  padding: 0.2em 0.65em;
+  border-radius: 999px;
 }
 .product-title {
   font-family: var(--font-display);
@@ -520,7 +522,7 @@ a.product-card-link:hover .btn-view {
   position: relative;
   width: 100%;
   height: 100%;
-  aspect-ratio: 3/4;
+  aspect-ratio: 4/3;
 }
 .product-media-multi .product-slide {
   position: absolute;
