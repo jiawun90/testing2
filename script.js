@@ -393,11 +393,7 @@ function renderProducts() {
 const createListingCard = (p) => `
   <a class="product-card product-card-link" href="product.html?id=${encodeURIComponent(p.id)}">
     <div class="product-media">${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : ""}</div>
-    <div class="product-body">
-      <div class="tag-container">
-      ${p.collectionLabel ? `<p class="eyebrow">${p.collectionLabel}</p>` : `<p class="eyebrow placeholder-tag"></p>`}
-  
-      </div>
+    
       <h3 class="product-title">${p.name}</h3>
       <p class="product-price">${p.priceLabel}</p>
       <span class="btn-view">View &amp; customise &rarr;</span>
