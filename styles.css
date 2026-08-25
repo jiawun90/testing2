@@ -471,15 +471,15 @@ em { font-style: italic; color: var(--accent); }
   margin: 0 auto;
   padding: 0 1.75rem;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.75rem 1.25rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.25rem;
 }
 
-/* 平板与大屏手机 (<= 900px)：双列排列 */
-@media (max-width: 900px) {
-  .product-grid { 
-    grid-template-columns: repeat(2, 1fr) !important; 
-    gap: 1.25rem !important; /* 调整间距，防止双列太拥挤 */
+/* 2. 平板 / 小屏电脑 (<= 1100px)：一行 3 或 4 个（防止卡片太挤） */
+@media (max-width: 1100px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 1rem !important;
   }
 }
 
