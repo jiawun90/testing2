@@ -435,9 +435,20 @@ em { font-style: italic; color: var(--accent); }
 .collection-card:nth-child(4) { border-color: #ffe6b8; }
 
 .collection-emoji {
-  font-size: 1.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
   line-height: 1;
-  filter: drop-shadow(0 2px 0 rgba(0,0,0,0.04));
+}
+.collection-emoji svg {
+  width: 100%;
+  height: 100%;
+  color: var(--ink);          /* 线稿颜色 */
+}
+.collection-card.active .collection-emoji svg {
+  color: var(--accent);       /* 选中时用粉色 */
 }
 .collection-name {
   font-size: 0.82rem;
