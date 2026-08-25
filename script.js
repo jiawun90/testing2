@@ -81,6 +81,19 @@ safari: {
     "8": "images/ages/unicorn/unicorn-08.png",
     "9": "images/ages/unicorn/unicorn-09.png",
   },
+
+  // Engraved Canvas Pack 岁数图 — 图放好后取消注释
+  engraved: {
+    // "1": "images/ages/engraved/engraved-01.png",
+    // "2": "images/ages/engraved/engraved-02.png",
+    // "3": "images/ages/engraved/engraved-03.png",
+    // "4": "images/ages/engraved/engraved-04.png",
+    // "5": "images/ages/engraved/engraved-05.png",
+    // "6": "images/ages/engraved/engraved-06.png",
+    // "7": "images/ages/engraved/engraved-07.png",
+    // "8": "images/ages/engraved/engraved-08.png",
+    // "9": "images/ages/engraved/engraved-09.png",
+  },
 };
 
 
@@ -157,6 +170,18 @@ const PACK_THEMES = [
 },
 ];
 
+const ENGRAVED_CARD = {
+  id: "engraved",
+  label: "Engraved",
+  image: "images/themes/theme-engraved.webp",
+  nameArc: false,
+  appendTurns: false,
+  overlay: {
+    name: { top: "46%", left: "50%", fontSize: "22px" },
+    age:  { top: "62%", left: "50%", fontSize: "1.6rem", maxWidth: "42%", maxHeight: "32%" },
+  },
+};
+
 const PRODUCTS = [
   /*--------P1---------*/
   {
@@ -198,6 +223,9 @@ const PRODUCTS = [
     priceCents: 580,
     priceLabel: "S$5.80",
     image: "images/products/product-favor-bag.jpg",
+    hasNamePreview: true,
+    previewThemeId: "engraved",
+    previewImage: "images/themes/theme-engraved.webp",
   },
   
   /*--------P3---------*/
@@ -483,13 +511,17 @@ function renderProductPage() {
     </div>`
     : "";
 
-  // 主题卡实时预览（Spark + Charm 共用）
-  const previewHtml = product.hasThemePreview
+  // 名字卡预览：Spark/Charm（主题）或 Engraved（单卡）
+  const showCardPreview = !!(product.hasThemePreview || product.hasNamePreview);
+  const previewBaseImage = product.hasThemePreview
+    ? PACK_THEMES[0].image
+    : (product.previewImage || ENGRAVED_CARD.image);
+  const previewHtml = showCardPreview
     ? `
     <div class="name-card-preview theme-image-preview" id="nameCardPreview" aria-live="polite">
       <p class="preview-label">Name card preview</p>
       <div class="theme-preview-frame">
-        <img id="themePreviewImg" src="${PACK_THEMES[0].image}" alt="Theme preview">
+        <img id="themePreviewImg" src="${previewBaseImage}" alt="Card preview">
         <div class="preview-name-wrap" id="previewNameWrap">
           <svg class="preview-name-svg" id="previewNameSvg" viewBox="0 0 300 70" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
             <defs>
@@ -629,10 +661,9 @@ function renderProductPage() {
   // 弧形名字：写入 SVG textPath
     const setArcName = (raw, isPlaceholder) => {
     const name = (raw || "").trim();
-    const themeId = detailEl.querySelector('input[name="pack-theme"]:checked')?.dataset?.themeId || "";
-const theme = PACK_THEMES.find((t) => t.id === themeId) || PACK_THEMES[0];
-const useArc = theme?.nameArc !== false;
-const withTurns = theme?.appendTurns !== false; // Mermaid 设 appendTurns:false 则不加 Turns
+    const theme = getActivePreviewTheme();
+    const useArc = theme?.nameArc !== false;
+    const withTurns = theme?.appendTurns !== false;
 
 const display = name
   ? (withTurns ? `${name} Turns` : name)
@@ -651,8 +682,23 @@ const display = name
     if (previewNameWrap) previewNameWrap.classList.toggle("is-placeholder", !!isPlaceholder);
   };
   
-  const getSelectedThemeId = () =>
-    detailEl.querySelector('input[name="pack-theme"]:checked')?.dataset?.themeId || "";
+  const getSelectedThemeId = () => {
+    const fromRadio = detailEl.querySelector('input[name="pack-theme"]:checked')?.dataset?.themeId;
+    if (fromRadio) return fromRadio;
+    if (product.hasNamePreview) return product.previewThemeId || "engraved";
+    return "";
+  };
+
+  const getActivePreviewTheme = () => {
+    if (product.hasNamePreview && !product.hasThemePreview) {
+      return {
+        ...ENGRAVED_CARD,
+        image: product.previewImage || ENGRAVED_CARD.image,
+      };
+    }
+    const id = getSelectedThemeId();
+    return PACK_THEMES.find((x) => x.id === id) || PACK_THEMES[0];
+  };
 
   const updateAgeDisplay = (textEl, imgEl, ageStr, withPrefix) => {
     const key = (ageStr || "").trim();
@@ -703,13 +749,11 @@ if (pos.bgWidth) el.style.width = pos.bgWidth;
 }
 
   const updateThemeImage = () => {
+    const theme = getActivePreviewTheme();
     const selected = detailEl.querySelector('input[name="pack-theme"]:checked');
-    const imgSrc = selected?.dataset?.themeImage;
-    const themeId = selected?.dataset?.themeId;
+    const imgSrc = selected?.dataset?.themeImage || theme?.image;
     if (themePreviewImg && imgSrc) themePreviewImg.src = imgSrc;
 
-    // 按主题切换名字/岁数位置（文字与插图共用）
-    const theme = PACK_THEMES.find((t) => t.id === themeId) || PACK_THEMES[0];
     if (theme?.overlay) {
       applyOverlayPosition(previewNameWrap, theme.overlay.name);
       applyOverlayPosition(previewAge, theme.overlay.age);
