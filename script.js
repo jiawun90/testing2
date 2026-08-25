@@ -395,7 +395,8 @@ const createListingCard = (p) => `
     <div class="product-media">${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : ""}</div>
     <div class="product-body">
       <div class="tag-container">
-        ${p.collectionLabel ? `<span class="collection-label">${p.collectionLabel}</span>` : `<span class="collection-label placeholder-tag"></span>`}
+      ${p.collectionLabel ? `<p class="eyebrow">${p.collectionLabel}</p>` : `<p class="eyebrow placeholder-tag"></p>`}
+  
       </div>
       <h3 class="product-title">${p.name}</h3>
       <p class="product-price">${p.priceLabel}</p>
