@@ -476,6 +476,12 @@ em { font-style: italic; color: var(--accent); }
 }
 
 /* ---------- Product grid ---------- */
+.shop-section,
+#shop {
+  background: linear-gradient(135deg, #fde2e4 0%, #e2e2f6 50%, #e8f0fe 100%) !important;
+  padding-top: 3rem;    /* 增加上下内边距，让背景铺开更平滑 */
+  padding-bottom: 3rem;
+}
 .shop { padding: 2rem 0 5rem; }
 .product-grid {
   max-width: 1280px;
