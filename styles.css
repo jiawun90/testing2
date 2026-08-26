@@ -476,12 +476,7 @@ em { font-style: italic; color: var(--accent); }
 }
 
 /* ---------- Product grid ---------- */
-.shop-section,
-#shop {
-  background: linear-gradient(135deg, #fde2e4 0%, #e2e2f6 50%, #e8f0fe 100%) !important;
-  padding-top: 3rem;    /* 增加上下内边距，让背景铺开更平滑 */
-  padding-bottom: 3rem;
-}
+
 .shop { padding: 2rem 0 5rem; }
 .product-grid {
   max-width: 1280px;
@@ -490,6 +485,9 @@ em { font-style: italic; color: var(--accent); }
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 1.25rem;
+   /* 柔和渐变色 */
+  background: linear-gradient(180deg, #fde2e4 0%, #e2e2f6 50%, #e8f0fe 100%) !important;
+  border-radius: 24px; /* 加上柔和圆角，让渐变区域像一个整体大卡片 */
 }
 
 /* 2. 平板 / 小屏电脑 (<= 1100px)：一行 3 或 4 个（防止卡片太挤） */
