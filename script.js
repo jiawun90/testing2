@@ -606,7 +606,7 @@ function renderProductPage() {
           </div>
 
           <div class="field-row">
-            <label for="childAge">Age Being Celebrated/label>
+            <label for="childAge">Age</label>
             <input id="childAge" type="text" inputmode="numeric" placeholder="e.g. 5" autocomplete="off" style="max-width: 120px;">
             <p class="field-helper">Age for Wish Card (Print materials)</p>
           </div>
