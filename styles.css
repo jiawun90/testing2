@@ -476,13 +476,11 @@ em { font-style: italic; color: var(--accent); }
 }
 
 /* ---------- Product grid ---------- */
-.shop-section {
-  padding: 4rem 0 1rem;
-  background:
-    radial-gradient(circle at 12% 20%, rgba(255, 214, 231, 0.7) 0%, transparent 42%),
-    radial-gradient(circle at 88% 10%, rgba(201, 182, 255, 0.45) 0%, transparent 40%),
-    radial-gradient(circle at 70% 80%, rgba(61, 184, 154, 0.12) 0%, transparent 35%),
-    var(--paper);
+.shop-section,
+#shop {
+  background: linear-gradient(135deg, #fde2e4 0%, #e2e2f6 50%, #e8f0fe 100%) !important;
+  padding-top: 3rem;    /* 增加上下内边距，让背景铺开更平滑 */
+  padding-bottom: 3rem;
 }
 .shop { padding: 2rem 0 5rem; }
 .product-grid {
