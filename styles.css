@@ -476,7 +476,7 @@ em { font-style: italic; color: var(--accent); }
 }
 
 /* ---------- Product grid ---------- */
-.collections-section {
+.shop-section {
   padding: 4rem 0 1rem;
   background:
     radial-gradient(circle at 12% 20%, rgba(255, 214, 231, 0.7) 0%, transparent 42%),
