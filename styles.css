@@ -218,25 +218,63 @@ em { font-style: italic; color: var(--accent); }
   flex-wrap: wrap;
   gap: 0.85rem;
 }
+/* 外层：霓虹光晕不裁切；内层再 overflow 裁圆角图 */
 .hero-visual {
   position: relative;
   aspect-ratio: 4/5;
-  background: linear-gradient(160deg, #ffeef5, #e8f0ff);
-  overflow: hidden;
   border-radius: 28px;
-  box-shadow: 0 20px 50px rgba(232, 93, 142, 0.15);
+  padding: 4px; /* 边框厚度 */
+  /* 马卡龙色：粉 / 桃 / 柠 / 薄荷 / 天蓝 / 香芋 */
+  background: linear-gradient(
+    90deg,
+    #ffb3c6,
+    #ffd6a5,
+    #fdffb6,
+    #caffbf,
+    #9bf6ff,
+    #bdb2ff,
+    #ffc6ff,
+    #ffb3c6
+  );
+  background-size: 300% 100%;
+  animation: neonRainbow 5s linear infinite;
+  box-shadow:
+    0 0 14px rgba(255, 179, 198, 0.55),
+    0 0 22px rgba(155, 246, 255, 0.35),
+    0 0 28px rgba(189, 178, 255, 0.28),
+    0 16px 40px rgba(232, 93, 142, 0.08);
+  z-index: 0;
+}
+.hero-visual > .hero-carousel-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #ffeef5, #e8f0ff);
+  z-index: 1;
 }
 .hero-visual img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+.hero-visual::before { content: none; }
 .hero-visual::after {
   content: "";
   position: absolute;
-  inset: 1rem;
-  border: 1px solid rgba(255,255,255,0.35);
+  inset: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   pointer-events: none;
+  z-index: 4;
+}
+@keyframes neonRainbow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-visual { animation: none; }
 }
 /* Carousel reused inside hero-visual */
 .hero-carousel-container {
