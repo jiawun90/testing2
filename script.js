@@ -189,8 +189,13 @@ const PRODUCTS = [
     category: "signature", // 对应 Collection：signature, magic-routine, 或 standard
     isPopular: true,       // true 会自动显示在 Home 的 Popular Picks 区域
     name: "Signature 3D Wonder Box",
-    collectionLabel: "Signature Collection",
-    desc: "Includes a personalized 3D-printed name tag and any 2 3D-printed keepsakes of your choice",
+    collectionLabel: "3D-Printed Collection",
+    desc: `Our signature 3D-printed keepsake experience, presented in a custom boutique gift box.
+      <ul class="product-desc-list">
+        <li><strong>Choice of 2 Keepsakes</strong> — Select any 2 custom 3D-printed designs from our collection.</li>
+        <li><strong>Signature Boutique Gift Box</strong> — Custom themed packaging crafted for your celebration.</li>
+        <li><strong>Personalised 3D-Printed Name Tag</strong> — Included with every set.</li>
+      </ul>`,
     priceCents: 1280,
     priceLabel: "S$12.80",
     multiName: true,
