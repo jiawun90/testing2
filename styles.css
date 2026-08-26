@@ -774,7 +774,7 @@ a.product-card-link:hover .btn-view {
 .product-detail-media img {
   width: 100%;
   aspect-ratio: 3/4;
-  object-fit: cover;
+  object-fit: contain;
   background: var(--paper-2);
 }
 .product-detail-info h1 {
