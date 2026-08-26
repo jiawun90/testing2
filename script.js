@@ -192,8 +192,8 @@ const PRODUCTS = [
     collectionLabel: "3D-Printed Collection",
     desc: `Our signature 3D-printed keepsake experience, presented in a custom boutique gift box.
       <ul class="product-desc-list">
-        <li><strong>Choice of 2 Keepsakes</strong> — Select any 2 custom 3D-printed designs from our collection.</li>
         <li><strong>Signature Boutique Gift Box</strong> — Custom themed packaging crafted for your celebration.</li>
+        <li><strong>Choice of 2 Keepsakes</strong> — Select any 2 custom 3D-printed designs from our collection.</li>
         <li><strong>Personalised 3D-Printed Name Tag</strong> — Included with every set.</li>
       </ul>`,
     priceCents: 1280,
@@ -600,15 +600,15 @@ function renderProductPage() {
           </div>` : ""}
 
           <div class="field-row">
-            <label for="childName">Birthday child's name</label>
+            <label for="childName">Who are we celebrating?</label>
             <input id="childName" type="text" placeholder="e.g. Olivia" autocomplete="off">
-            <p class="field-helper">For the name card we print for you.</p>
+            <p class="field-helper">Name for Wish Card (Print materials)</p>
           </div>
 
           <div class="field-row">
-            <label for="childAge">Age</label>
+            <label for="childAge">Age Being Celebrated/label>
             <input id="childAge" type="text" inputmode="numeric" placeholder="e.g. 5" autocomplete="off" style="max-width: 120px;">
-            <p class="field-helper">Used on the age card / print materials.</p>
+            <p class="field-helper">Age for Wish Card (Print materials)</p>
           </div>
 
           ${previewHtml}
