@@ -227,7 +227,7 @@ const PRODUCTS = [
     desc: "Suitable for Ages 3+ <br>What inside: Paint-your-own Laser-engraved Magnet • Colour-your-own Hand Fan • Bubble Blower • Acrylic Marker",
     priceCents: 580,
     priceLabel: "S$5.80",
-    image: "images/products/product-favor-bag.jpg",
+    image: "images/products/product-engraved-canvas.jpg",
     hasNamePreview: true,
     previewThemeId: "engraved",
     previewImage: "images/themes/theme-engraved.webp",
@@ -243,7 +243,7 @@ const PRODUCTS = [
     desc: "Suitable for Ages 2+ <br>What inside: 3D-Printed Routine Checklist • Multi-colour Pen • Mini Notebook • Magnetic Bookmark",
     priceCents: 680,
     priceLabel: "S$6.80",
-    image: "images/products/product-routine-space.jpg",
+    image: "images/products/product-routine-spark.jpg",
     // 主题卡预览（与 Charm Pack 共用主题）
     hasThemePreview: true,
   },
@@ -258,7 +258,7 @@ const PRODUCTS = [
     desc: "Suitable for Ages 2+ <br>What inside: 3D-Printed Routine Checklist • Inflatable Hammer • Foam Sticker • Kaleidoscope • Mosquito Repellent Band (Includes a printed gift bag-front & back design)",
     priceCents: 880,
     priceLabel: "S$8.80",
-    image: "images/products/product-routine-sunshine.jpg",
+    image: "images/products/product-routine-charm.jpg",
     // 主题卡预览（共用）+ 袋子正反面预览
     hasThemePreview: true,
     hasBagPreview: true,
@@ -276,7 +276,7 @@ const PRODUCTS = [
     desc: "Suitable for Ages 1+ <br>What inside: Mini Erasable Drawing Board • Hand Press Mini Fan • Pop-It Fidget Toy • Mini Helicopter",
     priceCents: 380,
     priceLabel: "S$3.80",
-    image: "images/products/product-routine-sunshine.jpg",
+    image: "images/products/product-standard-fun.jpg",
   },
 
   /*--------P6---------*/
@@ -289,7 +289,7 @@ const PRODUCTS = [
     desc: "Suitable for Ages 2+ <br>What inside: Magic Water Book • Kaleidoscope • Mosquito Repellent Band • Bubble Blower",
     priceCents: 480,
     priceLabel: "S4.80",
-    image: "images/products/product-routine-sunshine.jpg",
+    image: "images/products/product-standard-discovery.jpg",
   },
 
    /*--------P7---------*/
@@ -302,7 +302,7 @@ const PRODUCTS = [
     desc: "Suitable for Ages 4+ <br>What inside: Water Color Painting • Air-Dry Clay • Plaster Painting • Push-Down Toy Car",
     priceCents: 680,
     priceLabel: "S6.80",
-    image: "images/products/product-routine-sunshine.jpg",
+    image: "images/products/product-standard-creative.jpg",
   },
 ];
 
