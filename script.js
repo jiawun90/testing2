@@ -358,6 +358,50 @@ function formatSGD(cents) {
 }
 
 
+// ---------------- Cute notice modal (replaces native alert) ----------------
+function showNotice(message, options = {}) {
+  const title = options.title || "Just a moment";
+  const btnLabel = options.button || "Got it";
+
+  let root = document.getElementById("jwNotice");
+  if (!root) {
+    root = document.createElement("div");
+    root.id = "jwNotice";
+    root.className = "jw-notice";
+    root.innerHTML = `
+      <div class="jw-notice-backdrop" data-jw-notice-close></div>
+      <div class="jw-notice-card" role="dialog" aria-modal="true" aria-labelledby="jwNoticeTitle">
+        <h3 id="jwNoticeTitle" class="jw-notice-title"></h3>
+        <p class="jw-notice-msg"></p>
+        <button type="button" class="btn btn-primary jw-notice-btn" data-jw-notice-close></button>
+      </div>`;
+    document.body.appendChild(root);
+    root.addEventListener("click", (e) => {
+      if (e.target.closest("[data-jw-notice-close]")) hideNotice();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && root.classList.contains("is-open")) hideNotice();
+    });
+  }
+
+  root.querySelector(".jw-notice-title").textContent = title;
+  root.querySelector(".jw-notice-msg").textContent = message;
+  root.querySelector(".jw-notice-btn").textContent = btnLabel;
+  root.classList.add("is-open");
+  document.body.classList.add("jw-notice-open");
+  // focus button for a11y
+  setTimeout(() => root.querySelector(".jw-notice-btn")?.focus(), 50);
+}
+
+function hideNotice() {
+  const root = document.getElementById("jwNotice");
+  if (!root) return;
+  root.classList.remove("is-open");
+  document.body.classList.remove("jw-notice-open");
+}
+
+
+
 
 /*// ---------------- Render: product grid (listing cards) ----------------
 function renderProducts() {
@@ -525,7 +569,7 @@ function renderProductPage() {
       <label for="tagNames">${product.nameField.label}</label>
       <textarea id="tagNames" rows="4" placeholder="${product.nameField.placeholder}" class="name-textarea"></textarea>
       <p class="field-helper">${product.nameField.helper || ""}</p>
-      <span class="name-count" id="tagNameCount">0 names</span>
+      <span class="name-count" id="tagNameCount">Quantity: 0</span>
     </div>`
     : "";
 
@@ -634,7 +678,7 @@ function renderProductPage() {
           ${multiNameHtml}
 
           ${product.multiName ? `
-          <p class="field-helper qty-note">Quantity = number of names you enter above (one name tag each).</p>
+          <p class="field-helper qty-note">Quantity follows the guest names entered above (one name tag each).</p>
           ` : `
           <div class="field-row qty-row">
             <label for="productQty">Quantity</label>
@@ -810,7 +854,7 @@ if (pos.bgWidth) el.style.width = pos.bgWidth;
   if (tagNames && tagCount) {
     const update = () => {
       const n = tagNames.value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean).length;
-      tagCount.textContent = n === 0 ? "0 names" : n === 1 ? "1 name" : `${n} names`;
+      tagCount.textContent = `Quantity: ${n}`;
       tagCount.classList.toggle("has-names", n > 0);
     };
     tagNames.addEventListener("input", update);
@@ -827,15 +871,15 @@ if (pos.bgWidth) el.style.width = pos.bgWidth;
       const qty = qtyInput ? (parseInt(qtyInput.value, 10) || 1) : 1;
 
       if (product.hasThemePreview && !theme) {
-        alert("Please choose a pack theme.");
+        showNotice("Please choose a pack theme before adding to cart.", { title: "Which theme feels right?" });
         return;
       }
       if (!childName) {
-        alert("Please enter the birthday child's name.");
+        showNotice("Every wish card starts with a name — whose big day is it?", { title: "Who's the star today?" });
         return;
       }
       if (!childAge) {
-        alert("Please enter the child's age.");
+        showNotice("We use this on the wish card and print materials.", { title: "How many candles?" });
         return;
       }
 
@@ -844,7 +888,7 @@ if (pos.bgWidth) el.style.width = pos.bgWidth;
         const checked = detailEl.querySelectorAll(`.choose-checkbox[data-choose-group="${product.id}"]:checked`);
         selections = Array.from(checked).map((b) => b.value);
         if (selections.length !== product.chooseOptions.max) {
-          alert(`Please choose exactly ${product.chooseOptions.max} keepsakes (you picked ${selections.length}).`);
+          showNotice(`Please choose exactly ${product.chooseOptions.max} keepsakes (you picked ${selections.length}).`, { title: "Pick your favourites" });
           return;
         }
       }
@@ -856,7 +900,7 @@ if (pos.bgWidth) el.style.width = pos.bgWidth;
           .map((s) => s.trim())
           .filter(Boolean);
         if (tagNamesList.length === 0) {
-          alert("Please enter at least one name for the name tags (one per line).");
+          showNotice("Add at least one guest name (one per line) for the 3D name tags.", { title: "Who gets a name tag?" });
           return;
         }
       }
@@ -1070,7 +1114,7 @@ if (checkoutBtn) {
       }
     } catch (err) {
       console.error(err);
-      alert("Sorry, checkout could not be started. " + (err.message || ""));
+      showNotice("Sorry, checkout could not be started. " + (err.message || "Please try again."), { title: "Checkout issue" });
       checkoutBtn.disabled = false;
       checkoutBtn.textContent = "Checkout";
     }
