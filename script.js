@@ -1301,3 +1301,75 @@ function initHeroCarousel() {
 document.addEventListener("DOMContentLoaded", () => {
   initHeroCarousel();
 });
+
+
+// ---------------- Wish Cloud: slow walk on nav ----------------
+function initNavMascot() {
+  if (document.querySelector(".nav-mascot-track")) return;
+  const nav = document.querySelector(".nav");
+  if (!nav) return;
+
+  const track = document.createElement("div");
+  track.className = "nav-mascot-track";
+  track.setAttribute("aria-hidden", "true");
+  track.innerHTML = `
+    <div class="nav-mascot">
+      <img class="nav-mascot-img" src="images/wish-cloud.png" alt="">
+    </div>`;
+  nav.insertBefore(track, nav.firstChild);
+}
+
+// ---------------- Corner otter mascot + S$5 coupon ----------------
+function initCornerMascot() {
+  if (document.querySelector(".mascot-track")) return;
+
+  const track = document.createElement("div");
+  track.className = "mascot-track";
+  track.innerHTML = `
+    <div class="mascot-container" id="cornerMascot" role="button" tabindex="0" aria-label="Tap for a S$5 discount code">
+      <div class="coupon-popover">
+        <strong>S$5 off</strong>
+        <span>JUSTWISHES5</span>
+        <em>Tap to copy</em>
+      </div>
+      <img src="images/mascot.png" class="mascot-full-body" alt="JW mascot">
+    </div>`;
+  document.body.appendChild(track);
+
+  const copyCode = async () => {
+    const code = "JUSTWISHES5";
+    try {
+      await navigator.clipboard.writeText(code);
+      if (typeof showNotice === "function") {
+        showNotice("Code JUSTWISHES5 copied — S$5 off at checkout.", { title: "Yay, discount unlocked!" });
+      } else {
+        alert("JUSTWISHES5 copied! S$5 off.");
+      }
+    } catch (e) {
+      if (typeof showNotice === "function") {
+        showNotice("Please copy this code: JUSTWISHES5", { title: "Your S$5 code" });
+      } else {
+        prompt("Copy this code:", code);
+      }
+    }
+  };
+
+  const el = document.getElementById("cornerMascot");
+  if (el) {
+    el.addEventListener("click", copyCode);
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        copyCode();
+      }
+    });
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initNavMascot();
+  initCornerMascot();
+});
+if (document.readyState !== "loading") {
+  try { initNavMascot(); initCornerMascot(); } catch (e) {}
+}
