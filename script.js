@@ -1319,22 +1319,72 @@ function initNavMascot() {
   nav.insertBefore(track, nav.firstChild);
 }
 
-// ---------------- Corner otter mascot + S$5 coupon ----------------
+// ---------------- Corner mascot + S$5 coupon (随机吉祥物 / 甩出隐藏) ----------------
+const MASCOT_HIDDEN_KEY = "jw-mascot-hidden";
+
+// 放你的 4 只吉祥物路径（文件名可改）
+const CORNER_MASCOTS = [
+  "images/mascot-1.png",
+  "images/mascot-2.png",
+  "images/mascot-3.png",
+  "images/mascot-4.png",
+];
+
+function pickRandomMascot(excludeSrc) {
+  const list = CORNER_MASCOTS.filter(Boolean);
+  if (list.length === 0) return "images/mascot.png";
+  if (list.length === 1) return list[0];
+  let next = list[Math.floor(Math.random() * list.length)];
+  // 召回时尽量换一只（若有 2 只以上）
+  if (excludeSrc && list.length > 1) {
+    let guard = 0;
+    while (next === excludeSrc && guard++ < 8) {
+      next = list[Math.floor(Math.random() * list.length)];
+    }
+  }
+  return next;
+}
+
 function initCornerMascot() {
   if (document.querySelector(".mascot-track")) return;
+
+  const startSrc = pickRandomMascot();
 
   const track = document.createElement("div");
   track.className = "mascot-track";
   track.innerHTML = `
-    <div class="mascot-container" id="cornerMascot" role="button" tabindex="0" aria-label="Tap for a S$5 discount code">
+    <div class="mascot-container" id="cornerMascot" role="button" tabindex="0" aria-label="Flick to hide, tap for S$5 code">
       <div class="coupon-popover">
         <strong>S$5 off</strong>
         <span>JUSTWISHES5</span>
-        <em>Tap to copy</em>
+        <em>Tap to copy · flick to hide</em>
       </div>
-      <img src="images/mascot.png" class="mascot-full-body" alt="JW mascot">
-    </div>`;
+      <div class="mascot-figure">
+        <img src="${startSrc}" class="mascot-full-body" alt="JW mascot" draggable="false">
+      </div>
+    </div>
+    <button type="button" class="mascot-recall" id="mascotRecall" title="Call a friend back" aria-label="Show mascot again">
+      <img src="${startSrc}" alt="" draggable="false">
+      <span>Come back</span>
+    </button>`;
   document.body.appendChild(track);
+
+  const el = document.getElementById("cornerMascot");
+  const recallBtn = document.getElementById("mascotRecall");
+  if (!el) return;
+
+  const setHidden = (hidden) => {
+    track.classList.toggle("is-hidden", hidden);
+    try {
+      localStorage.setItem(MASCOT_HIDDEN_KEY, hidden ? "1" : "0");
+    } catch (e) {}
+  };
+
+  try {
+    if (localStorage.getItem(MASCOT_HIDDEN_KEY) === "1") {
+      track.classList.add("is-hidden");
+    }
+  } catch (e) {}
 
   const copyCode = async () => {
     const code = "JUSTWISHES5";
@@ -1354,17 +1404,112 @@ function initCornerMascot() {
     }
   };
 
-  const el = document.getElementById("cornerMascot");
-  if (el) {
-    el.addEventListener("click", copyCode);
-    el.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        copyCode();
-      }
-    });
-  }
+  // —— 与 demo 相同：快速一甩就飞走 ——
+  let isDragging = false;
+  let lastX = 0;
+  let lastY = 0;
+  let vx = 0;
+  let vy = 0;
+  let startX = 0;
+  let startY = 0;
+  let moved = false;
+
+  const point = (e) => {
+    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (e.changedTouches && e.changedTouches[0]) {
+      return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+  };
+
+  const onStart = (e) => {
+    if (el.classList.contains("flung-out") || track.classList.contains("is-hidden")) return;
+    isDragging = true;
+    moved = false;
+    const p = point(e);
+    startX = lastX = p.x;
+    startY = lastY = p.y;
+    vx = 0;
+    vy = 0;
+    el.style.animationPlayState = "paused";
+    el.classList.add("is-dragging");
+  };
+
+  const onMove = (e) => {
+    if (!isDragging) return;
+    const p = point(e);
+    vx = p.x - lastX;
+    vy = p.y - lastY;
+    lastX = p.x;
+    lastY = p.y;
+    if (Math.hypot(p.x - startX, p.y - startY) > 8) moved = true;
+    if (e.cancelable && e.type.startsWith("touch")) e.preventDefault();
+  };
+
+  const onEnd = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    el.classList.remove("is-dragging");
+
+    const speed = Math.hypot(vx, vy);
+
+    // demo：瞬时速度 > 12 判定为甩飞
+    if (speed > 12) {
+      const flyX = vx * 25;
+      const flyY = vy * 25;
+      const rotateDeg = vx * 15;
+
+      el.classList.add("flung-out");
+      el.style.transform = `translate(${flyX}px, ${flyY}px) rotate(${rotateDeg}deg) scale(0.5)`;
+
+      setTimeout(() => {
+        setHidden(true);
+        el.classList.remove("flung-out");
+        el.style.transform = "";
+        el.style.animationPlayState = "";
+      }, 520);
+      return;
+    }
+
+    // 没甩出去：继续走
+    el.style.animationPlayState = "running";
+    // 几乎没移动 → 点击复制折扣码
+    if (!moved) copyCode();
+  };
+
+  el.addEventListener("mousedown", onStart);
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onEnd);
+
+  el.addEventListener("touchstart", onStart, { passive: true });
+  window.addEventListener("touchmove", onMove, { passive: false });
+  window.addEventListener("touchend", onEnd);
+
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      copyCode();
+    }
+  });
+
+  const bodyImg = el.querySelector(".mascot-full-body");
+  const recallImg = recallBtn?.querySelector("img");
+
+  recallBtn?.addEventListener("click", () => {
+    const current = bodyImg?.getAttribute("src") || "";
+    const next = pickRandomMascot(current);
+    if (bodyImg) bodyImg.src = next;
+    if (recallImg) recallImg.src = next;
+
+    setHidden(false);
+    el.classList.remove("flung-out");
+    el.style.transform = "";
+    el.style.animationPlayState = "running";
+    track.classList.add("is-arriving");
+    setTimeout(() => track.classList.remove("is-arriving"), 500);
+  });
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   initNavMascot();
