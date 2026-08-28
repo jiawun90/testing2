@@ -228,13 +228,28 @@
   </div>
 </aside>
 
-<section class="mascot-section">
+<section class="mascot-section" id="mascot">
+  <div class="section-head">
+    <p class="eyebrow">Meet our mascot</p>
+    <h2>Say hi to Wishy</h2>
+    <p class="shop-note">Drag to rotate · Scroll to zoom · Double-click to reset</p>
+  </div>
   <div class="mascot-wrap">
-    <canvas id="mascotCanvas"></canvas>
-    <p class="mascot-hint">Drag to rotate · Scroll to zoom</p>
+    <canvas id="mascotCanvas" aria-label="3D mascot model"></canvas>
+    <p class="mascot-hint" id="mascotHint">Loading 3D mascot…</p>
   </div>
 </section>
 
+<!-- Three.js (ES modules) for mascot.glb -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="mascot-viewer.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
