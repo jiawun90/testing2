@@ -1,32 +1,96 @@
 /**
  * JW Just Wishes — floating 3D mascot (mascot.glb)
  * Walks randomly along the bottom of the page (no frame).
- * Replaces the old 2D corner mascots.
  */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const CANVAS_ID = 'mascotCanvas';
+/** Try these paths in order — folder + common filenames */
 const MODEL_CANDIDATES = [
   'images/mascot/mascot.glb',
+  'images/mascot/mascot.gltf',
   'images/mascot.glb',
   'images/mascot/Wishy.glb',
   'images/mascot/wishy.glb',
+  'images/mascot/model.glb',
+  'images/mascot/scene.glb',
   'mascot.glb',
   'models/mascot.glb',
 ];
 
-async function resolveModelUrl() {
+/** GLB magic = 0x46546C67 ("glTF") little-endian */
+function isLikelyGlb(buffer) {
+  if (!buffer || buffer.byteLength < 12) return false;
+  const view = new DataView(buffer);
+  const magic = view.getUint32(0, true);
+  return magic === 0x46546c67;
+}
+
+function isLikelyGltfJson(buffer) {
+  if (!buffer || buffer.byteLength < 2) return false;
+  const head = new TextDecoder().decode(buffer.slice(0, 32)).trimStart();
+  return head.startsWith('{') || head.startsWith('[');
+}
+
+async function fetchModelBuffer(url) {
+  const res = await fetch(url, { cache: 'no-cache' });
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} for ${url}`);
+  }
+  const buffer = await res.arrayBuffer();
+  return { buffer, contentType: res.headers.get('content-type') || '' };
+}
+
+async function resolveAndLoad(loader) {
+  const errors = [];
   for (const path of MODEL_CANDIDATES) {
     try {
-      const res = await fetch(path, { method: 'HEAD' });
-      if (res.ok) return path;
-    } catch {
-      /* next */
+      const { buffer, contentType } = await fetchModelBuffer(path);
+      console.info(
+        `[glb-mascot] tried ${path} — ${buffer.byteLength} bytes, type=${contentType}`
+      );
+
+      if (buffer.byteLength < 20) {
+        errors.push(`${path}: too small (${buffer.byteLength} bytes)`);
+        continue;
+      }
+
+      // HTML error page or Git-LFS pointer mistaken for model?
+      if (!isLikelyGlb(buffer) && !isLikelyGltfJson(buffer)) {
+        const sniff = new TextDecoder().decode(buffer.slice(0, 80));
+        if (/<!doctype|<html|version https:\/\/git-lfs/i.test(sniff)) {
+          errors.push(
+            `${path}: not a model file (got HTML or Git-LFS pointer). Re-export a real .glb`
+          );
+          continue;
+        }
+        errors.push(`${path}: unknown format (not glb/gltf header)`);
+        continue;
+      }
+
+      const gltf = await new Promise((resolve, reject) => {
+        try {
+          loader.parse(
+            buffer,
+            path.replace(/[^/]+$/, ''),
+            resolve,
+            reject
+          );
+        } catch (e) {
+          reject(e);
+        }
+      });
+      console.info(`[glb-mascot] loaded OK: ${path}`);
+      return { gltf, path };
+    } catch (err) {
+      errors.push(`${path}: ${err && err.message ? err.message : err}`);
     }
   }
-  return MODEL_CANDIDATES[0];
+  const detail = errors.join('\n');
+  console.error('[glb-mascot] all candidates failed:\n' + detail);
+  throw new Error(detail || 'No model found');
 }
 
 function initMascotViewer() {
@@ -37,15 +101,16 @@ function initMascotViewer() {
   const recallBtn = document.getElementById('glbMascotRecall');
   if (!canvas || !container || !track) return;
 
-  // Hide any leftover 2D mascot nodes script.js may inject
   const killLegacy = () => {
     document.querySelectorAll('.mascot-track, .nav-mascot-track').forEach((el) => {
       el.style.display = 'none';
     });
   };
   killLegacy();
-  const mo = new MutationObserver(killLegacy);
-  mo.observe(document.body, { childList: true, subtree: true });
+  new MutationObserver(killLegacy).observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
 
   const size = () => ({
     w: container.clientWidth || 110,
@@ -92,7 +157,7 @@ function initMascotViewer() {
   controls.target.set(0, 0.25, 0);
   controls.update();
 
-  // Pause spin while interacting
+  let pauseWalk = false;
   let idleTimer = null;
   controls.addEventListener('start', () => {
     controls.autoRotate = false;
@@ -107,75 +172,65 @@ function initMascotViewer() {
     }, 3500);
   });
 
-  // --- Load GLB ---
   let modelRoot = null;
   const loader = new GLTFLoader();
-  resolveModelUrl().then((url) => {
-    loader.load(
-      url,
-      (gltf) => {
-        modelRoot = gltf.scene;
-        modelRoot.traverse((child) => {
-          if (child.isMesh && child.material) {
-            const mats = Array.isArray(child.material)
-              ? child.material
-              : [child.material];
-            mats.forEach((m) => {
-              if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
-              m.needsUpdate = true;
-            });
-          }
-        });
-        // Center & ground
-        const box = new THREE.Box3().setFromObject(modelRoot);
-        const sizeV = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        modelRoot.position.sub(center);
-        const yMin = new THREE.Box3().setFromObject(modelRoot).min.y;
-        modelRoot.position.y -= yMin;
-        const maxDim = Math.max(sizeV.x, sizeV.y, sizeV.z) || 1;
-        const dist = maxDim * 2.0;
-        camera.position.set(dist * 0.2, dist * 0.35, dist);
-        controls.target.set(0, sizeV.y * 0.4, 0);
-        controls.update();
-        scene.add(modelRoot);
-      },
-      undefined,
-      (err) => {
-        console.error('[glb-mascot] load failed', url, err);
-        container.style.opacity = '0.35';
-        container.title = 'Failed to load mascot.glb';
-      }
-    );
-  });
 
-  // --- Random walk along bottom ---
-  let posX = 12; // px from left
-  let dir = 1; // 1 = right, -1 = left
-  let speed = 0.35 + Math.random() * 0.25; // px per frame-ish
-  let pauseWalk = false;
+  resolveAndLoad(loader)
+    .then(({ gltf }) => {
+      modelRoot = gltf.scene;
+      modelRoot.traverse((child) => {
+        if (child.isMesh && child.material) {
+          const mats = Array.isArray(child.material)
+            ? child.material
+            : [child.material];
+          mats.forEach((m) => {
+            if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+            m.needsUpdate = true;
+          });
+        }
+      });
+      const box = new THREE.Box3().setFromObject(modelRoot);
+      const sizeV = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      modelRoot.position.sub(center);
+      const yMin = new THREE.Box3().setFromObject(modelRoot).min.y;
+      modelRoot.position.y -= yMin;
+      const maxDim = Math.max(sizeV.x, sizeV.y, sizeV.z) || 1;
+      const dist = maxDim * 2.0;
+      camera.position.set(dist * 0.2, dist * 0.35, dist);
+      controls.target.set(0, sizeV.y * 0.4, 0);
+      controls.update();
+      scene.add(modelRoot);
+    })
+    .catch((err) => {
+      console.error('[glb-mascot] load failed', err);
+      container.style.opacity = '0.4';
+      container.title =
+        'mascot.glb 加载失败 — 请检查文件是否为有效 GLB（见 Console）';
+    });
+
+  // --- Random walk ---
+  let posX = 12;
+  let dir = 1;
+  let speed = 0.35 + Math.random() * 0.25;
   let nextTurnAt = performance.now() + 4000 + Math.random() * 6000;
   let bobT = 0;
 
   function maxX() {
     return Math.max(0, window.innerWidth - container.offsetWidth - 12);
   }
-
   function pickNewSpeed() {
     speed = 0.28 + Math.random() * 0.45;
   }
 
   function walkFrame(now) {
     if (!pauseWalk && !track.classList.contains('is-hidden')) {
-      // occasional random direction change
       if (now >= nextTurnAt) {
         dir *= -1;
         pickNewSpeed();
         nextTurnAt = now + 3000 + Math.random() * 8000;
       }
-
       posX += dir * speed;
-
       const max = maxX();
       if (posX <= 8) {
         posX = 8;
@@ -188,14 +243,10 @@ function initMascotViewer() {
         pickNewSpeed();
         nextTurnAt = now + 4000 + Math.random() * 5000;
       }
-
-      // gentle bob
       bobT += 0.04;
       const bobY = Math.sin(bobT) * 3;
-
       container.style.left = `${posX}px`;
       container.style.bottom = `${8 + bobY}px`;
-      // Face walk direction by yawing the 3D model (no CSS mirror)
       if (modelRoot) {
         const targetYaw = dir < 0 ? Math.PI / 2 : -Math.PI / 2;
         modelRoot.rotation.y += (targetYaw - modelRoot.rotation.y) * 0.08;
@@ -203,7 +254,6 @@ function initMascotViewer() {
     }
   }
 
-  // Resize
   function onResize() {
     const { w, h } = size();
     camera.aspect = w / h;
@@ -212,10 +262,8 @@ function initMascotViewer() {
     posX = Math.min(posX, maxX());
   }
   window.addEventListener('resize', onResize);
-  const ro = new ResizeObserver(onResize);
-  ro.observe(container);
+  new ResizeObserver(onResize).observe(container);
 
-  // Hide / recall
   if (hideBtn) {
     hideBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -232,21 +280,12 @@ function initMascotViewer() {
     });
   }
 
-  // Optional: drag container horizontally (does not conflict with orbit on canvas much)
-  let drag = null;
-  container.addEventListener('pointerdown', (e) => {
-    if (e.target === hideBtn) return;
-    // only start container drag with shift or long-press alternative: middle/right skipped
-    // Keep orbit on canvas; skip container drag to avoid fighting controls
-  });
-
   function animate(now) {
     requestAnimationFrame(animate);
     walkFrame(now || performance.now());
     controls.update();
     renderer.render(scene, camera);
   }
-  // start roughly mid-right
   posX = Math.min(maxX() * 0.55, maxX());
   animate(performance.now());
 }
