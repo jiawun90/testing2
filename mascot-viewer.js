@@ -8,12 +8,14 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const CANVAS_ID = 'mascotCanvas';
 const HINT_ID = 'mascotHint';
-/** Put mascot.glb next to index.html, or under images/ / models/ */
+/** User placed model under images/mascot/ (or images/mascot.glb) */
 const MODEL_CANDIDATES = [
-  'mascot.glb',
+  'images/mascot/mascot.glb',
   'images/mascot.glb',
+  'images/mascot/Wishy.glb',
+  'images/mascot/wishy.glb',
+  'mascot.glb',
   'models/mascot.glb',
-  './mascot.glb',
 ];
 
 function setHint(text, state = '') {
@@ -159,7 +161,7 @@ function initMascotViewer() {
       (err) => {
         console.error('[mascot-viewer] Failed to load', url, err);
         setHint(
-          'Could not load mascot.glb — place the file next to index.html (or in images/)',
+          'Could not load mascot.glb — expected at images/mascot/mascot.glb',
           'is-error'
         );
       }
