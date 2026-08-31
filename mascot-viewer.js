@@ -1,22 +1,20 @@
 /**
  * JW Just Wishes — floating 3D mascot (Three.js)
- * Requires: #mascotCanvas, importmap for three@0.170.0
- * Model path: images/mascot/model.glb
+ * Model: images/mascot/model.glb (Draco-compressed OK)
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const canvas = document.getElementById('mascotCanvas');
 const track = document.getElementById('glbMascotTrack');
-const container = document.getElementById('glbMascotContainer');
 const hideBtn = document.getElementById('glbMascotHide');
 const recallBtn = document.getElementById('glbMascotRecall');
 
 if (!canvas || !track) {
   console.warn('[mascot] canvas or track not found');
 } else {
-  // —— Renderer ——
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
@@ -38,7 +36,6 @@ if (!canvas || !track) {
   fill.position.set(-2, 2, -1);
   scene.add(fill);
 
-  // 小浮窗：可轻微旋转，限制缩放
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
@@ -61,54 +58,48 @@ if (!canvas || !track) {
   let mixer = null;
   const clock = new THREE.Clock();
 
-  // 尝试多个常见路径
-  const MODEL_PATHS = [
-    'images/mascot/model.glb',
-    'images/mascot/mascot.glb',
-    'model.glb',
-  ];
+  // Draco decoder（你的 model.glb 用了 Draco 压缩，必须配置）
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+  dracoLoader.setDecoderConfig({ type: 'js' });
 
-  function tryLoad(paths, index) {
-    if (index >= paths.length) {
-      console.error('[mascot] All model paths failed. Put model.glb in images/mascot/');
-      track.classList.add('is-error');
-      return;
-    }
-    const path = paths[index];
-    new GLTFLoader().load(
-      path,
-      (gltf) => {
-        const model = gltf.scene;
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        const scale = 1.35 / maxDim;
-        model.scale.setScalar(scale);
-        model.position.sub(center.multiplyScalar(scale));
-        model.position.y = 0;
-        scene.add(model);
-        controls.target.set(0, size.y * scale * 0.4, 0);
-        controls.update();
+  const loader = new GLTFLoader();
+  loader.setDRACOLoader(dracoLoader);
 
-        if (gltf.animations?.length) {
-          mixer = new THREE.AnimationMixer(model);
-          gltf.animations.forEach((clip) => {
-            const action = mixer.clipAction(clip);
-            action.play();
-          });
-        }
-        console.log('[mascot] loaded:', path);
-        track.classList.add('is-ready');
-      },
-      undefined,
-      (err) => {
-        console.warn('[mascot] failed:', path, err);
-        tryLoad(paths, index + 1);
+  const MODEL_PATH = 'images/mascot/model.glb';
+
+  loader.load(
+    MODEL_PATH,
+    (gltf) => {
+      const model = gltf.scene;
+      const box = new THREE.Box3().setFromObject(model);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const scale = 1.35 / maxDim;
+      model.scale.setScalar(scale);
+      model.position.sub(center.multiplyScalar(scale));
+      model.position.y = 0;
+      scene.add(model);
+      controls.target.set(0, size.y * scale * 0.4, 0);
+      controls.update();
+
+      if (gltf.animations?.length) {
+        mixer = new THREE.AnimationMixer(model);
+        gltf.animations.forEach((clip) => {
+          mixer.clipAction(clip).play();
+        });
       }
-    );
-  }
-  tryLoad(MODEL_PATHS, 0);
+      console.log('[mascot] loaded:', MODEL_PATH);
+      track.classList.add('is-ready');
+      track.classList.remove('is-error');
+    },
+    undefined,
+    (err) => {
+      console.error('[mascot] load failed:', MODEL_PATH, err);
+      track.classList.add('is-error');
+    }
+  );
 
   function animate() {
     requestAnimationFrame(animate);
@@ -119,7 +110,6 @@ if (!canvas || !track) {
   }
   animate();
 
-  // Hide / recall
   if (hideBtn && recallBtn) {
     hideBtn.addEventListener('click', (e) => {
       e.stopPropagation();
