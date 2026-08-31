@@ -2112,26 +2112,191 @@ body.jw-notice-open {
   .mascot-full-body { animation: none; }
 }
 
+/* ---------- 3D mascot：右下角小浮动，不占整页区域 ---------- */
+.glb-mascot-track {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0;              /* 不占布局高度 */
+  z-index: 9999;
+  pointer-events: none;
+  overflow: visible;
+}
+.glb-mascot-container {
+  position: fixed;        /* 直接相对视口 */
+  bottom: 16px;
+  left: 12px;
+  width: 112px;           /* 小尺寸 */
+  height: 138px;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  background: transparent;
+  border: none;
+  overflow: visible;
+  will-change: transform, left, top;
+}
+.glb-mascot-track.is-walking .glb-mascot-container {
+  animation: glbWalk 28s linear infinite;
+}
+.glb-mascot-container.is-dragging,
+.glb-mascot-track.is-dragging .glb-mascot-container {
+  cursor: grabbing;
+  animation: none !important;
+  z-index: 10001;
+}
+.glb-mascot-figure {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+#mascotCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent !important;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+  pointer-events: none;
+}
+.glb-mascot-hide {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(42, 51, 64, 0.22);
+  color: #2a3340;
+  font-size: 0.8rem;
+  cursor: pointer;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  pointer-events: auto;
+}
+.glb-mascot-container:hover .glb-mascot-hide { opacity: 1; }
+.glb-mascot-hide:hover {
+  background: rgba(232, 93, 142, 0.5);
+  color: #fff;
+}
+.glb-mascot-recall {
+  position: fixed;
+  bottom: 16px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.9rem;
+  border: 2px solid #ffd166;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  pointer-events: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b4c9a;
+  z-index: 10000;
+}
+.glb-mascot-track.is-hidden .glb-mascot-container {
+  display: none !important;
+}
+.glb-coupon-bubble {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px) scale(0.85);
+  padding: 7px 10px;
+  background: #fff;
+  border: 2px solid #ffd166;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+  transition: transform 0.3s cubic-bezier(0.34, 1.35, 0.64, 1), opacity 0.25s;
+  direction: ltr;
+  unicode-bidi: isolate;
+  max-width: 160px;
+}
+.glb-coupon-bubble.is-show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
+.glb-coupon-bubble strong {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6b4c9a;
+}
 .glb-coupon-bubble em {
   display: block;
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
   font-style: normal;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: #999;
 }
 .glb-coupon-bubble .glb-code {
   display: inline-block;
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
   background: #fff8e7;
   color: #c45d00;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 6px;
   font-weight: 700;
-  font-size: 0.85rem;
-  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
   cursor: pointer;
-  user-select: all;
 }
-.glb-coupon-bubble .glb-code:hover {
-  background: #ffe4a8;
+.glb-coupon-bubble .glb-code:hover { background: #ffe4a8; }
+.glb-coupon-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-top-color: #ffd166;
+}
+@keyframes glbWalk {
+  0%   { left: 10px;  bottom: 16px; }
+  49%  { left: calc(100vw - 130px); bottom: 16px; }
+  50%  { left: calc(100vw - 130px); bottom: 16px; }
+  99%  { left: 10px;  bottom: 16px; }
+  100% { left: 10px;  bottom: 16px; }
+}
+@media (max-width: 520px) {
+  .glb-mascot-container {
+    width: 96px;
+    height: 118px;
+  }
+  @keyframes glbWalk {
+    0%   { left: 6px; bottom: 12px; }
+    49%  { left: calc(100vw - 110px); bottom: 12px; }
+    50%  { left: calc(100vw - 110px); bottom: 12px; }
+    99%  { left: 6px; bottom: 12px; }
+    100% { left: 6px; bottom: 12px; }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glb-mascot-track.is-walking .glb-mascot-container {
+    animation: none;
+    left: 12px;
+    bottom: 16px;
+  }
+}
+
+/* 若首页还留着大块 Meet our mascot 区域，隐藏掉 */
+.mascot-section {
+  display: none !important;
 }
