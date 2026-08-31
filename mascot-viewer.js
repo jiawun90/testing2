@@ -1,6 +1,18 @@
 /**
  * JW Just Wishes — 3D mascot
- * 全身 · 拖动位移 · 拖动旋转 360° · 甩走 · 送折扣码
+ * 全身 · 随机走动（非固定路径）· 拖动位移 · 拖动旋转 360° · 甩走 · 送折扣码
+ *
+ * 这一版修正/改进的地方：
+ * 1. 之前只要点一下（不管是拿折扣码还是拖拽），is-walking 这个 class 会被拿掉，
+ *    但后面完全没有代码把它加回来，所以角色一旦被点过就永久定格。
+ *    现在改成：拿折扣码 / 拖拽放开之后，都会安排一小段延迟，然后自动恢复走动。
+ * 2. 之前的"走路"其实是一条固定的 CSS 位移路径（28秒从左走到右、再走回来），
+ *    每次都一样，不是真的随机。现在改成 JS 控制的随机游走：
+ *    每一小段会随机挑一个新的位置、随机的移动时长、走到定点后随机停留一下，
+ *    看起来才像真的在到处闲晃，而不是机械式来回。
+ * 3. 如果 mascot.glb 里有区分「走路」「待机」的动画片段（clip 名字含 walk / idle / run），
+ *    会在移动 / 停留时自动切换对应动作；如果没有区分（只有一个或没取名），
+ *    仍然维持原本「全部动画一起播放」的保底做法，不会因为找不到对应片段就完全没动作。
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -14,7 +26,6 @@ const recallBtn = document.getElementById('glbMascotRecall');
 const bubble = document.getElementById('glbCouponBubble');
 
 // ★ 吉祥物送出的折扣码（请在后端 / KV 里生成同样的码，并设满 S$50）
-// 用完可改成新码，或做成「每人每天一次」由后端发放
 const MASCOT_CODES = [
   { code: 'WISHY5', label: 'S$5 off', min: 'Min. S$50' },
   { code: 'WISHY10', label: '10% off', min: 'Min. S$50' },
@@ -52,8 +63,12 @@ if (!canvas || !track || !container) {
   let modelRoot = null;
   let rotY = 0.2;
   let rotX = 0;
-  let faceSign = 1;
   const clock = new THREE.Clock();
+
+  // 走路 / 待机动作（如果模型里有区分的话）
+  let walkAction = null;
+  let idleAction = null;
+  let currentMotion = 'idle'; // 'idle' | 'walk'
 
   const dracoLoader = new DRACOLoader();
   dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
@@ -81,6 +96,17 @@ if (!canvas || !track || !container) {
     camera.updateProjectionMatrix();
   }
 
+  // 切换「走路」/「待机」动作（如果模型有对应片段的话，做交叉淡入淡出）
+  function setMotion(state) {
+    if (state === currentMotion) return;
+    currentMotion = state;
+    if (!walkAction || !idleAction) return; // 模型没有分开的走路/待机动作，就不处理，交给保底播放
+    const from = state === 'walk' ? idleAction : walkAction;
+    const to = state === 'walk' ? walkAction : idleAction;
+    to.reset().play();
+    to.crossFadeFrom(from, 0.35, true);
+  }
+
   loader.load(
     'images/mascot/model.glb',
     (gltf) => {
@@ -95,13 +121,31 @@ if (!canvas || !track || !container) {
 
       if (gltf.animations?.length) {
         mixer = new THREE.AnimationMixer(modelRoot);
-        gltf.animations.forEach((c) => mixer.clipAction(c).play());
+
+        // 尝试依名字找出「走路」「待机」片段（不分大小写，含 walk/run 或 idle 关键字）
+        const findClip = (keywords) =>
+          gltf.animations.find((c) => keywords.some((k) => c.name.toLowerCase().includes(k)));
+        const walkClip = findClip(['walk', 'run']);
+        const idleClip = findClip(['idle', 'stand']);
+
+        if (walkClip && idleClip) {
+          walkAction = mixer.clipAction(walkClip);
+          idleAction = mixer.clipAction(idleClip);
+          walkAction.play();
+          idleAction.play();
+          walkAction.setEffectiveWeight(0);
+          idleAction.setEffectiveWeight(1);
+          currentMotion = 'idle';
+        } else {
+          // 保底：模型没有区分走路/待机动作，就把找到的所有动画都播放（维持原本行为）
+          gltf.animations.forEach((c) => mixer.clipAction(c).play());
+        }
       }
 
       track.classList.add('is-ready', 'is-walking');
       console.log('[mascot] loaded');
       scheduleCouponBubble();
-      startFaceSync();
+      startWandering();
     },
     undefined,
     (err) => {
@@ -115,7 +159,6 @@ if (!canvas || !track || !container) {
     const dt = clock.getDelta();
     if (mixer) mixer.update(dt);
     if (modelRoot) {
-      // 360°：rotY 无限制累加
       modelRoot.rotation.y = rotY;
       modelRoot.rotation.x = THREE.MathUtils.clamp(rotX, -0.45, 0.45);
     }
@@ -123,26 +166,101 @@ if (!canvas || !track || !container) {
   }
   animate();
 
-  const WALK_MS = 28000;
-  function startFaceSync() {
-    const half = WALK_MS / 2;
-    const t0 = performance.now();
-    (function sync() {
-      if (!dragging && track.classList.contains('is-walking') && !userRotating) {
-        const elapsed = (performance.now() - t0) % WALK_MS;
-        faceSign = elapsed < half ? 1 : -1;
-        // 走路时缓慢转向
-        const target = faceSign > 0 ? 0.2 : Math.PI - 0.2;
-        rotY += (target - rotY) * 0.03;
-      }
-      requestAnimationFrame(sync);
-    })();
+  // ==================== 随机游走（取代原本固定的CSS路径）====================
+  let wanderTimer = null;
+  let wandering = false;
+
+  function getBounds() {
+    const w = container.offsetWidth || 112;
+    const h = container.offsetHeight || 138;
+    const margin = 8;
+    const bottomFixed = window.innerWidth <= 520 ? 12 : 16; // 保持贴地，只在水平方向游走
+    return {
+      minX: margin,
+      maxX: Math.max(margin, window.innerWidth - w - margin),
+      bottom: bottomFixed,
+      w,
+      h,
+    };
+  }
+
+  function currentLeft() {
+    const rect = container.getBoundingClientRect();
+    return rect.left;
+  }
+
+  function stopWandering() {
+    wandering = false;
+    if (wanderTimer) {
+      clearTimeout(wanderTimer);
+      wanderTimer = null;
+    }
+    container.removeEventListener('transitionend', onLegEnd);
+  }
+
+  function onLegEnd(e) {
+    if (e.propertyName !== 'left') return;
+    container.removeEventListener('transitionend', onLegEnd);
+    setMotion('idle');
+    container.classList.remove('is-moving');
+    // 走到定点后，随机停留 1~4 秒，再走下一段
+    const pause = 1000 + Math.random() * 3000;
+    wanderTimer = setTimeout(walkNextLeg, pause);
+  }
+
+  function walkNextLeg() {
+    if (!wandering || dragging) return;
+    const b = getBounds();
+    const from = currentLeft();
+    // 随机挑一个新的目的地（水平方向），确保跟目前位置有一点距离，不要走得太琐碎
+    let target;
+    let attempts = 0;
+    do {
+      target = b.minX + Math.random() * (b.maxX - b.minX);
+      attempts++;
+    } while (Math.abs(target - from) < Math.min(80, (b.maxX - b.minX) * 0.25) && attempts < 6);
+
+    const distance = Math.abs(target - from);
+    const speedPxPerSec = 55 + Math.random() * 25; // 每次速度略有不同，更自然
+    const duration = Math.max(1.2, Math.min(9, distance / speedPxPerSec));
+
+    // 面向移动方向
+    const movingRight = target > from;
+    const faceTarget = movingRight ? 0.2 : Math.PI - 0.2;
+    rotY += (faceTarget - rotY); // 直接转向（走动瞬间转身，简单可靠）
+
+    container.style.transition = `left ${duration}s linear`;
+    container.style.left = target + 'px';
+    container.style.bottom = b.bottom + 'px';
+    container.style.top = 'auto';
+    container.style.right = 'auto';
+
+    container.classList.add('is-moving');
+    setMotion('walk');
+
+    container.addEventListener('transitionend', onLegEnd);
+  }
+
+  function startWandering() {
+    if (wandering) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return; // 尊重系统的「减少动态效果」设定，角色保持静止不到处走
+    wandering = true;
+    // 初次先待机个 0.5~1.5 秒再开始走，比较自然
+    wanderTimer = setTimeout(walkNextLeg, 500 + Math.random() * 1000);
+  }
+
+  function resumeWanderingSoon(delay = 1200) {
+    if (track.classList.contains('is-hidden')) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    track.classList.add('is-walking');
+    stopWandering();
+    wandering = true;
+    wanderTimer = setTimeout(walkNextLeg, delay);
   }
 
   // —— 拖：移动位置 + 旋转 360° ——
-  // 以按下后位移判断：移动多 = 移位；若按住并左右拖，同时旋转
   let dragging = false;
-  let userRotating = false;
   let lastX = 0;
   let lastY = 0;
   let lastT = 0;
@@ -169,15 +287,17 @@ if (!canvas || !track || !container) {
     e.preventDefault();
     dragging = true;
     moved = false;
-    userRotating = true;
     track.classList.remove('is-walking');
+    stopWandering();
+    setMotion('idle');
+    container.classList.remove('is-moving');
     track.classList.add('is-dragging');
     container.classList.add('is-dragging');
 
     const rect = container.getBoundingClientRect();
     posX = rect.left;
     posY = rect.top;
-    container.style.animation = 'none';
+    container.style.transition = 'none';
     setManualPos(posX, posY);
 
     lastX = e.clientX;
@@ -201,12 +321,9 @@ if (!canvas || !track || !container) {
     vx = dx / dt;
     vy = dy / dt;
 
-    // 水平拖 → 绕 Y 轴 360°（不限制）
     rotY += dx * 0.012;
-    // 垂直拖 → 轻微俯仰
     rotX += dy * 0.006;
 
-    // 同时移动位置
     if (Math.abs(dx) > 1 || Math.abs(dy) > 1) moved = true;
     setManualPos(posX + dx, posY + dy);
 
@@ -217,6 +334,7 @@ if (!canvas || !track || !container) {
 
   function flingAway() {
     track.classList.add('is-leaving');
+    stopWandering();
     container.style.transition = 'transform 0.55s cubic-bezier(0.25, 0.8, 0.4, 1), opacity 0.55s ease';
     const dirX = vx >= 0 ? 1 : -1;
     const dirY = vy >= 0 ? 1 : -1;
@@ -225,14 +343,13 @@ if (!canvas || !track || !container) {
     setTimeout(() => {
       track.classList.add('is-hidden');
       track.classList.remove('is-leaving', 'is-dragging', 'is-walking');
-      container.classList.remove('is-dragging');
+      container.classList.remove('is-dragging', 'is-moving');
       container.style.transition = '';
       container.style.transform = '';
       container.style.opacity = '';
       container.style.left = '';
       container.style.top = '';
       container.style.bottom = '';
-      container.style.animation = '';
       if (recallBtn) recallBtn.hidden = false;
     }, 560);
   }
@@ -240,7 +357,6 @@ if (!canvas || !track || !container) {
   function onPointerUp(e) {
     if (!dragging) return;
     dragging = false;
-    userRotating = false;
     track.classList.remove('is-dragging');
     container.classList.remove('is-dragging');
     try {
@@ -252,20 +368,21 @@ if (!canvas || !track || !container) {
       flingAway();
       return;
     }
-    // 轻点（几乎没移动）→ 送折扣码
+    // 轻点（几乎没移动）→ 送折扣码，然后过一会儿恢复走动
     if (!moved || speed < 0.1) {
       giveDiscountCode();
+      resumeWanderingSoon(1800); // 给人时间看到气泡，再继续走
+      return;
     }
+    // 拖着移动了一段距离后放开 → 从目前位置继续随机游走
+    resumeWanderingSoon(800);
   }
 
-  // 滚轮也可 360 转
   container.addEventListener(
     'wheel',
     (e) => {
       e.preventDefault();
       rotY += e.deltaY * 0.005;
-      userRotating = true;
-      track.classList.remove('is-walking');
     },
     { passive: false }
   );
@@ -276,12 +393,9 @@ if (!canvas || !track || !container) {
   window.addEventListener('pointercancel', onPointerUp);
 
   // —— 送折扣码 ——
-  let lastGivenCode = null;
-
   function giveDiscountCode() {
     if (!bubble || track.classList.contains('is-hidden')) return;
     const item = MASCOT_CODES[Math.floor(Math.random() * MASCOT_CODES.length)];
-    lastGivenCode = item.code;
 
     bubble.innerHTML = `
       <strong>${item.label}</strong>
@@ -290,14 +404,12 @@ if (!canvas || !track || !container) {
     `;
     bubble.classList.add('is-show');
 
-    // 尝试写入购物车折扣输入框
     const input = document.getElementById('discountCodeInput');
     if (input) {
       input.value = item.code;
       input.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
-    // 点击码复制
     const codeEl = bubble.querySelector('.glb-code');
     if (codeEl) {
       codeEl.style.cursor = 'pointer';
@@ -311,7 +423,6 @@ if (!canvas || !track || !container) {
             codeEl.textContent = item.code;
           }, 1200);
         } catch (_) {
-          // fallback
           if (input) {
             input.focus();
             input.select();
@@ -343,6 +454,7 @@ if (!canvas || !track || !container) {
       recallBtn.hidden = true;
       posX = window.innerWidth - 180;
       posY = window.innerHeight - 220;
+      container.style.transition = 'none';
       setManualPos(posX, posY);
       container.style.opacity = '0';
       container.style.transform = 'translateX(60px) scale(0.5)';
@@ -352,11 +464,10 @@ if (!canvas || !track || !container) {
         container.style.transform = 'none';
         setTimeout(() => {
           container.style.transition = '';
-          track.classList.add('is-walking');
           container.style.left = '';
           container.style.top = '';
           container.style.bottom = '';
-          container.style.animation = '';
+          startWandering();
         }, 480);
       });
       resize();

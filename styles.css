@@ -2138,8 +2138,20 @@ body.jw-notice-open {
   overflow: visible;
   will-change: transform, left, top;
 }
-.glb-mascot-track.is-walking .glb-mascot-container {
-  animation: glbWalk 28s linear infinite;
+/* 走动的路径现在完全由 mascot-viewer.js 用 JS 随机控制（每段随机目的地/时长/停留），
+   不再用固定的 28 秒来回 CSS 动画，所以这里不再触发 CSS animation，
+   只保留 transition，让 JS 设定的 left 值平滑移动过去。 */
+.glb-mascot-container {
+  transition: left 3s linear;
+}
+/* 走动时让角色的画布本身有一点上下微弹，看起来更像在走路，
+   即使模型本身没有走路动画片段也会有动态感 */
+.glb-mascot-container.is-moving .glb-mascot-figure {
+  animation: glbBob 0.45s ease-in-out infinite;
+}
+@keyframes glbBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 .glb-mascot-container.is-dragging,
 .glb-mascot-track.is-dragging .glb-mascot-container {
@@ -2268,31 +2280,17 @@ body.jw-notice-open {
   border: 6px solid transparent;
   border-top-color: #ffd166;
 }
-@keyframes glbWalk {
-  0%   { left: 10px;  bottom: 16px; }
-  49%  { left: calc(100vw - 130px); bottom: 16px; }
-  50%  { left: calc(100vw - 130px); bottom: 16px; }
-  99%  { left: 10px;  bottom: 16px; }
-  100% { left: 10px;  bottom: 16px; }
-}
 @media (max-width: 520px) {
   .glb-mascot-container {
     width: 96px;
     height: 118px;
   }
-  @keyframes glbWalk {
-    0%   { left: 6px; bottom: 12px; }
-    49%  { left: calc(100vw - 110px); bottom: 12px; }
-    50%  { left: calc(100vw - 110px); bottom: 12px; }
-    99%  { left: 6px; bottom: 12px; }
-    100% { left: 6px; bottom: 12px; }
-  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .glb-mascot-track.is-walking .glb-mascot-container {
+  .glb-mascot-container,
+  .glb-mascot-container.is-moving .glb-mascot-figure {
     animation: none;
-    left: 12px;
-    bottom: 16px;
+    transition: none;
   }
 }
 
