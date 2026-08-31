@@ -4,12 +4,11 @@
 // and handing off to HitPay Checkout via /api/create-checkout-session
 // =============================================================
 
-// 运费规则：未满这个金额（分）收取固定运费；达到或超过则免运费。
+// 运费规则：未满这个金额（分）收取固定运费；达到或超过则免运费。·
 // 这两个数字会同时用在①购物车画面显示 ②HitPay结账时真正收取的金额，
 // 改这里的数字，购物车提示文字和实际收费会一起更新，不用改两个地方。
 const FREE_SHIPPING_THRESHOLD_CENTS = 10000; // S$100.00 — 未满这个金额收运费
 const SHIPPING_FEE_CENTS = 500; // S$5.00 — 未满门槛时收取的固定运费
-const MIN_DISCOUNT_SUBTOTAL_CENTS = 5000; // S$50.00 — 低于此金额不可使用折扣码
 
 // 名字卡字体选项（预览 + 下单备注）
 const NAME_FONTS = [
@@ -82,6 +81,19 @@ safari: {
     "8": "images/ages/unicorn/unicorn-08.png",
     "9": "images/ages/unicorn/unicorn-09.png",
   },
+
+  // Engraved Canvas Pack 岁数图 — 图放好后取消注释
+  engraved: {
+    // "1": "images/ages/engraved/engraved-01.png",
+    // "2": "images/ages/engraved/engraved-02.png",
+    // "3": "images/ages/engraved/engraved-03.png",
+    // "4": "images/ages/engraved/engraved-04.png",
+    // "5": "images/ages/engraved/engraved-05.png",
+    // "6": "images/ages/engraved/engraved-06.png",
+    // "7": "images/ages/engraved/engraved-07.png",
+    // "8": "images/ages/engraved/engraved-08.png",
+    // "9": "images/ages/engraved/engraved-09.png",
+  },
 };
 
 
@@ -97,9 +109,7 @@ const PACK_THEMES = [
     overlay: {
       name: { top: "42%", left: "50%", fontSize: "23px" },
       age:  { top: "54%", left: "50%", fontSize: "2.4rem" },
-      padX: "0.0em",      // 左右内边距 → 底更宽
-    padY: "0.0em",     // 上下内边距 → 底更高
-    bgWidth: "90%",     // 可选：整块底的宽度
+      
     },
   },
   {
@@ -160,19 +170,39 @@ const PACK_THEMES = [
 },
 ];
 
+const ENGRAVED_CARD = {
+  id: "engraved",
+  label: "Engraved",
+  image: "images/themes/theme-engraved.webp",
+  nameArc: false,
+  appendTurns: false,
+  overlay: {
+    name: { top: "46%", left: "50%", fontSize: "22px" },
+    age:  { top: "62%", left: "50%", fontSize: "1.6rem", maxWidth: "42%", maxHeight: "32%" },
+  },
+};
+
 const PRODUCTS = [
+  /*--------P1---------*/
   {
     id: "signature-3d-wonder-box",
+    category: "signature", // 对应 Collection：signature, magic-routine, 或 standard
+    isPopular: true,       // true 会自动显示在 Home 的 Popular Picks 区域
     name: "Signature 3D Wonder Box",
-    ageLabel: null,
-    desc: "Includes a personalised 3D-printed name tag, plus your choice of ANY 2 3D-printed keepsakes: Flickering Light, Dinosaur Egg (with a baby dino inside), Milk Box Holder, or Desk Organizer.",
+    collectionLabel: "3D-Printed Collection",
+    desc: `Our signature 3D-printed keepsake experience, presented in a custom boutique gift box.
+      <ul class="product-desc-list">
+        <li><strong>Signature Boutique Gift Box</strong> — Custom themed packaging crafted for your celebration.</li>
+        <li><strong>Choice of 2 Keepsakes</strong> — Select any 2 custom 3D-printed designs from our collection.</li>
+        <li><strong>Personalised 3D-Printed Name Tag</strong> — Included with every set.</li>
+      </ul>`,
     priceCents: 1280,
     priceLabel: "S$12.80",
     multiName: true,
     nameField: {
-      label: "Names for the name tags (classmates)",
-      placeholder: "Alicia\nMarcus\nZoe\n...(one name per line)",
-      helper: "One name per line — each gets a 3D-printed name tag."
+      label: "Personalized 3D-Printed Name Tag (Guest Name)",
+      placeholder: "Oliver\nMarcus\nZoe\n...(one guest name per line)",
+      helper: "One guest name per line — Complete with a custom 3D name tag for each guest"
     },
     chooseOptions: {
       label: "Choose any 2 keepsakes (same for all)",
@@ -186,39 +216,93 @@ const PRODUCTS = [
     },
     image: "images/products/product-3d-keepsake-box.jpg",
   },
+
+  /*--------P2---------*/
   {
     id: "engraved-canvas-pack",
+    category: "standard",
+    isPopular: true,
     name: "Engraved Canvas Pack",
-    ageLabel: "Ages 3+",
-    desc: "Curated goodie bag: paint-your-own laser-engraved magnet, colour-your-own hand fan, bubble blower and an acrylic marker.",
+    collectionLabel: "Engraved Collection",
+    desc: "Suitable for Ages 3+ <br>What inside: Paint-your-own Laser-engraved Magnet • Colour-your-own Hand Fan • Bubble Blower • Acrylic Marker",
     priceCents: 580,
     priceLabel: "S$5.80",
-    image: "images/products/product-favor-bag.jpg",
+    image: "images/products/product-engraved-canvas.jpg",
+    hasNamePreview: true,
+    previewThemeId: "engraved",
+    previewImage: "images/themes/theme-engraved.webp",
   },
+  
+  /*--------P3---------*/
   {
     id: "routine-spark-pack",
+    category: "magic-routine",
+    isPopular: false,
     name: "Magic Routine Spark Pack",
-    ageLabel: "Ages 2+",
-    desc: "Curated goodie bag: 3D-printed routine checklist, multi-colour pen, mini notebook and a magnetic bookmark.",
+    collectionLabel: "Magic Routine Collection",
+    desc: "Suitable for Ages 2+ <br>What inside: 3D-Printed Routine Checklist • Multi-colour Pen • Mini Notebook • Magnetic Bookmark",
     priceCents: 680,
     priceLabel: "S$6.80",
-    image: "images/products/product-routine-space.jpg",
+    image: "images/products/product-routine-spark.jpg",
     // 主题卡预览（与 Charm Pack 共用主题）
     hasThemePreview: true,
   },
+  
+  /*--------P4---------*/
   {
     id: "routine-charm-pack",
+    category: "magic-routine",
+    isPopular: false,
     name: "Magic Routine Charm Pack",
-    ageLabel: "Ages 2+",
-    desc: "Curated goodie bag: 3D-printed routine checklist, inflatable hammer, foam sticker, kaleidoscope and a mosquito repellent band. Includes a printed gift bag (front & back design).",
+    collectionLabel: "Magic Routine Collection",
+    desc: "Suitable for Ages 2+ <br>What inside: 3D-Printed Routine Checklist • Inflatable Hammer • Foam Sticker • Kaleidoscope • Mosquito Repellent Band (Includes a printed gift bag-front & back design)",
     priceCents: 880,
     priceLabel: "S$8.80",
-    image: "images/products/product-routine-sunshine.jpg",
+    image: "images/products/product-routine-charm.jpg",
     // 主题卡预览（共用）+ 袋子正反面预览
     hasThemePreview: true,
     hasBagPreview: true,
     bagFront: "images/bags/bag-charm-front.webp",
     bagBack: "images/bags/bag-charm-back.webp",
+  },
+
+  /*--------P5---------*/
+ {
+    id: "standard-fun-pack",
+    category: "standard",
+    isPopular: false,
+    name: "Standard Fun Pack",
+    collectionLabel: "Standard Goodie Collection",
+    desc: "Suitable for Ages 1+ <br>What inside: Mini Erasable Drawing Board • Hand Press Mini Fan • Pop-It Fidget Toy • Mini Helicopter",
+    priceCents: 380,
+    priceLabel: "S$3.80",
+    image: "images/products/product-standard-fun.jpg",
+  },
+
+  /*--------P6---------*/
+ {
+    id: "standard-discovery-pack",
+    category: "standard",
+    isPopular: false,
+    name: "Standard Discovery Pack",
+    collectionLabel: "Standard Goodie Collection",
+    desc: "Suitable for Ages 2+ <br>What inside: Magic Water Book • Kaleidoscope • Mosquito Repellent Band • Bubble Blower",
+    priceCents: 480,
+    priceLabel: "S4.80",
+    image: "images/products/product-standard-discovery.jpg",
+  },
+
+   /*--------P7---------*/
+   {
+    id: "standard-creative-pack",
+    category: "standard",
+    isPopular: false,
+    name: "Standard Creative Pack",
+    collectionLabel: "Standard Goodie Collection",
+    desc: "Suitable for Ages 4+ <br>What inside: Water Color Painting • Air-Dry Clay • Plaster Painting • Push-Down Toy Car",
+    priceCents: 680,
+    priceLabel: "S6.80",
+    image: "images/products/product-standard-creative.jpg",
   },
 ];
 
@@ -274,45 +358,52 @@ function formatSGD(cents) {
 }
 
 
-/*
+// ---------------- Cute notice modal (replaces native alert) ----------------
+function showNotice(message, options = {}) {
+  const title = options.title || "Just a moment";
+  const btnLabel = options.button || "Got it";
 
-// ---------------- Render: product grid ----------------
-function renderProducts() {
-  const grid = document.getElementById("productGrid");
-  if (!grid) return; // 容错处理：如果当前页面没有 productGrid，安全退出
-
-  grid.innerHTML = PRODUCTS.map((p) => `
-    <div class="product-card" data-id="${p.id}">
-      <div class="product-media">${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : ''}</div>
-      <div class="product-body">
-        <h3>${p.name}${p.ageLabel ? ` <span class="age-label">${p.ageLabel}</span>` : ""}</h3>
-        <p class="product-desc">${p.desc}</p>
-        <p class="product-price">${p.priceLabel}</p>
-        <div class="field-row">
-          <label for="personalise-${p.id}">${p.personalise.label}</label>
-          <input id="personalise-${p.id}" type="text" placeholder="${p.personalise.placeholder}">
-        </div>
-        <button class="add-btn" data-add="${p.id}">Add to cart</button>
-      </div>
-    </div>
-  `).join("");
-
-  grid.querySelectorAll("[data-add]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const product = PRODUCTS.find((p) => p.id === btn.dataset.add);
-      const input = document.getElementById(`personalise-${product.id}`);
-      addToCart(product, input ? input.value.trim() : "");
-      if (input) input.value = "";
+  let root = document.getElementById("jwNotice");
+  if (!root) {
+    root = document.createElement("div");
+    root.id = "jwNotice";
+    root.className = "jw-notice";
+    root.innerHTML = `
+      <div class="jw-notice-backdrop" data-jw-notice-close></div>
+      <div class="jw-notice-card" role="dialog" aria-modal="true" aria-labelledby="jwNoticeTitle">
+        <h3 id="jwNoticeTitle" class="jw-notice-title"></h3>
+        <p class="jw-notice-msg"></p>
+        <button type="button" class="btn btn-primary jw-notice-btn" data-jw-notice-close></button>
+      </div>`;
+    document.body.appendChild(root);
+    root.addEventListener("click", (e) => {
+      if (e.target.closest("[data-jw-notice-close]")) hideNotice();
     });
-  });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && root.classList.contains("is-open")) hideNotice();
+    });
+  }
+
+  root.querySelector(".jw-notice-title").textContent = title;
+  root.querySelector(".jw-notice-msg").textContent = message;
+  root.querySelector(".jw-notice-btn").textContent = btnLabel;
+  root.classList.add("is-open");
+  document.body.classList.add("jw-notice-open");
+  // focus button for a11y
+  setTimeout(() => root.querySelector(".jw-notice-btn")?.focus(), 50);
 }
 
-*/
+function hideNotice() {
+  const root = document.getElementById("jwNotice");
+  if (!root) return;
+  root.classList.remove("is-open");
+  document.body.classList.remove("jw-notice-open");
+}
 
 
 
 
-// ---------------- Render: product grid (listing cards) ----------------
+/*// ---------------- Render: product grid (listing cards) ----------------
 function renderProducts() {
   const homeGrid = document.getElementById("popularGrid");
   const shopGrid = document.getElementById("productGrid");
@@ -322,13 +413,20 @@ function renderProducts() {
     <a class="product-card product-card-link" href="product.html?id=${encodeURIComponent(p.id)}">
       <div class="product-media">${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : ""}</div>
       <div class="product-body">
-        <h3>${p.name}${p.ageLabel ? ` <span class="age-label">${p.ageLabel}</span>` : ""}</h3>
-        <p class="product-desc listing-desc">${p.desc.length > 100 ? p.desc.slice(0, 100).trim() + "…" : p.desc}</p>
+        <!-- 1. 标题 -->
+        <h3 class="product-title">${p.name}</h3>
+        <!-- 2. 年龄标签：独立占一行（如果没有就留空，保持对齐） -->
+        <div class="tag-container">
+          ${p.ageLabel ? `<span class="age-label">${p.ageLabel}</span>` : `<span class="age-label placeholder-tag"></span>`}
+        </div>
+        <!-- 3. 价格 -->
         <p class="product-price">${p.priceLabel}</p>
-        <span class="btn-view">View &amp; customise →</span>
+        <!-- 4. 底部按钮 -->
+        <span class="btn-view">View &amp; customise &rarr;</span>
       </div>
     </a>`;
-
+  
+// ---------------- Home： Popular Item Display ----------------
   if (homeGrid) {
     const popularItems = PRODUCTS.filter((p) => p.id === "signature-3d-wonder-box");
     homeGrid.innerHTML = popularItems.map(createListingCard).join("");
@@ -336,7 +434,93 @@ function renderProducts() {
   if (shopGrid) {
     shopGrid.innerHTML = PRODUCTS.map(createListingCard).join("");
   }
+}*/
+
+
+// ---------------- Render: product grid (listing cards) ----------------
+// 单个卡片生成模板
+const createListingCard = (p) => `
+  <a class="product-card product-card-link" href="product.html?id=${encodeURIComponent(p.id)}">
+    <div class="product-media">${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy">` : ""}</div>
+    <div class="product-body">
+      <h3 class="product-title">${p.name}</h3>
+      <p class="product-price">${p.priceLabel}</p>
+      <span class="btn-view">View &amp; customise &rarr;</span>
+    </div>
+  </a>`;
+
+function renderProducts() {
+  const homeGrid = document.getElementById("popularGrid");
+  const shopGrid = document.getElementById("productGrid");
+
+  // 1. 首页 Popular：isPopular 的前 4 个
+  if (homeGrid) {
+    const popularItems = PRODUCTS.filter((p) => p.isPopular || p.id === "signature-3d-wonder-box").slice(0, 4);
+    homeGrid.innerHTML = popularItems.map(createListingCard).join("");
+  }
+
+  // 2. 首页 Collections 下方 / 商店页：显示商品（可按 ?category=）
+  if (shopGrid) {
+    const cat = new URLSearchParams(window.location.search).get("category") || "all";
+    const list = cat === "all" ? PRODUCTS : PRODUCTS.filter((p) => p.category === cat);
+    shopGrid.innerHTML = list.length
+      ? list.map(createListingCard).join("")
+      : `<p style="grid-column: 1/-1; text-align: center; color: #888; padding: 2em;">No products in this category yet.</p>`;
+    // 同步分类高亮
+    document.querySelectorAll("[data-filter-category]").forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("data-filter-category") === cat);
+    });
+  }
 }
+
+// ---------------- Collection 筛选：商店页就地筛选；首页用链接跳 shop.html?category= ---
+function filterShop(category, element) {
+  const cat = category || "all";
+  const shopGrid = document.getElementById("productGrid");
+
+  // 不在商店页（或没有商品网格）→ 跳转商店并带上分类
+  if (!shopGrid || !document.getElementById("shop") && !window.location.pathname.includes("shop")) {
+    // 若首页误调：仍跳商店
+    if (!shopGrid) {
+      window.location.href = cat === "all" ? "shop.html" : `shop.html?category=${encodeURIComponent(cat)}`;
+      return;
+    }
+  }
+
+  if (!shopGrid) {
+    window.location.href = cat === "all" ? "shop.html" : `shop.html?category=${encodeURIComponent(cat)}`;
+    return;
+  }
+
+  document.querySelectorAll(".collection-card, .shop-filter-pill").forEach((card) => {
+    card.classList.remove("active");
+  });
+  if (element) {
+    element.classList.add("active");
+  } else {
+    document.querySelectorAll("[data-filter-category]").forEach((btn) => {
+      if (btn.getAttribute("data-filter-category") === cat) btn.classList.add("active");
+    });
+  }
+
+  const filtered = cat === "all"
+    ? PRODUCTS
+    : PRODUCTS.filter((p) => p.category === cat);
+
+  if (filtered.length === 0) {
+    shopGrid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #888; padding: 2em;">No products in this category yet.</p>`;
+  } else {
+    shopGrid.innerHTML = filtered.map(createListingCard).join("");
+  }
+
+  try {
+    const url = new URL(window.location.href);
+    if (cat === "all") url.searchParams.delete("category");
+    else url.searchParams.set("category", cat);
+    history.replaceState({}, "", url);
+  } catch (e) {}
+}
+window.filterShop = filterShop;
 
 // ---------------- Render: product detail page ----------------
 function renderProductPage() {
@@ -356,15 +540,14 @@ function renderProductPage() {
 
   document.title = `${product.name} — JW Just Wishes`;
 
-  // 主题选项：有预览图的商品显示缩略图，其它只显示文字
-  const themesHtml = PACK_THEMES.map((t, i) => `
-    <label class="theme-option ${product.hasThemePreview ? "theme-option-thumb" : ""}">
+  // 主题选项：只显示文字；大图在下方 Name card preview
+  const themesHtml = product.hasThemePreview
+    ? PACK_THEMES.map((t, i) => `
+    <label class="theme-option">
       <input type="radio" name="pack-theme" value="${t.label}" data-theme-id="${t.id}" data-theme-image="${t.image || ""}" ${i === 0 ? "checked" : ""}>
-      ${product.hasThemePreview && t.image
-        ? `<span class="theme-thumb"><img src="${t.image}" alt="${t.label}"><span class="theme-thumb-label">${t.label}</span></span>`
-        : `<span class="theme-card">${t.label}</span>`
-      }
-    </label>`).join("");
+      <span class="theme-card">${t.label}</span>
+    </label>`).join("")
+    : "";
 
   const keepsakesHtml = product.chooseOptions
     ? `
@@ -386,17 +569,21 @@ function renderProductPage() {
       <label for="tagNames">${product.nameField.label}</label>
       <textarea id="tagNames" rows="4" placeholder="${product.nameField.placeholder}" class="name-textarea"></textarea>
       <p class="field-helper">${product.nameField.helper || ""}</p>
-      <span class="name-count" id="tagNameCount">0 names</span>
+      <span class="name-count" id="tagNameCount">Quantity: 0</span>
     </div>`
     : "";
 
-  // 主题卡实时预览（Spark + Charm 共用）
-  const previewHtml = product.hasThemePreview
+  // 名字卡预览：Spark/Charm（主题）或 Engraved（单卡）
+  const showCardPreview = !!(product.hasThemePreview || product.hasNamePreview);
+  const previewBaseImage = product.hasThemePreview
+    ? PACK_THEMES[0].image
+    : (product.previewImage || ENGRAVED_CARD.image);
+  const previewHtml = showCardPreview
     ? `
     <div class="name-card-preview theme-image-preview" id="nameCardPreview" aria-live="polite">
       <p class="preview-label">Name card preview</p>
       <div class="theme-preview-frame">
-        <img id="themePreviewImg" src="${PACK_THEMES[0].image}" alt="Theme preview">
+        <img id="themePreviewImg" src="${previewBaseImage}" alt="Card preview">
         <div class="preview-name-wrap" id="previewNameWrap">
           <svg class="preview-name-svg" id="previewNameSvg" viewBox="0 0 300 70" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
             <defs>
@@ -457,28 +644,31 @@ function renderProductPage() {
         ${product.image ? `<img src="${product.image}" alt="${product.name}">` : ""}
       </div>
       <div class="product-detail-info">
-        <h1>${product.name}${product.ageLabel ? ` <span class="age-label">${product.ageLabel}</span>` : ""}</h1>
+        ${product.collectionLabel ? `<p class="eyebrow">${product.collectionLabel}</p>` : ''}
+        <h1 class="product-detail-title">${product.name}</h1>
         <p class="product-price product-detail-price">${product.priceLabel}</p>
         <p class="product-desc">${product.desc}</p>
 
         <div class="product-form">
+          ${product.hasThemePreview ? `
           <div class="field-row">
             <label>Pack theme</label>
-            <div class="theme-options ${product.hasThemePreview ? "theme-options-thumbs" : ""}" id="themeOptions">
+            <div class="theme-options" id="themeOptions">
               ${themesHtml}
             </div>
-          </div>
+            <p class="field-helper">Choose a theme — preview updates below.</p>
+          </div>` : ""}
 
           <div class="field-row">
-            <label for="childName">Birthday child's name</label>
+            <label for="childName">Who are we celebrating?</label>
             <input id="childName" type="text" placeholder="e.g. Olivia" autocomplete="off">
-            <p class="field-helper">For the name card we print for you.</p>
+            <p class="field-helper">Name for Wish Card / Print materials.</p>
           </div>
 
           <div class="field-row">
             <label for="childAge">Age</label>
             <input id="childAge" type="text" inputmode="numeric" placeholder="e.g. 5" autocomplete="off" style="max-width: 120px;">
-            <p class="field-helper">Used on the age card / print materials.</p>
+            <p class="field-helper">Age for Wish Card / Print materials.</p>
           </div>
 
           ${previewHtml}
@@ -488,7 +678,7 @@ function renderProductPage() {
           ${multiNameHtml}
 
           ${product.multiName ? `
-          <p class="field-helper qty-note">Quantity = number of names you enter above (one name tag each).</p>
+          <p class="field-helper qty-note">Quantity follows the guest names entered above (one name tag each).</p>
           ` : `
           <div class="field-row qty-row">
             <label for="productQty">Quantity</label>
@@ -534,10 +724,9 @@ function renderProductPage() {
   // 弧形名字：写入 SVG textPath
     const setArcName = (raw, isPlaceholder) => {
     const name = (raw || "").trim();
-    const themeId = detailEl.querySelector('input[name="pack-theme"]:checked')?.dataset?.themeId || "";
-const theme = PACK_THEMES.find((t) => t.id === themeId) || PACK_THEMES[0];
-const useArc = theme?.nameArc !== false;
-const withTurns = theme?.appendTurns !== false; // Mermaid 设 appendTurns:false 则不加 Turns
+    const theme = getActivePreviewTheme();
+    const useArc = theme?.nameArc !== false;
+    const withTurns = theme?.appendTurns !== false;
 
 const display = name
   ? (withTurns ? `${name} Turns` : name)
@@ -556,8 +745,23 @@ const display = name
     if (previewNameWrap) previewNameWrap.classList.toggle("is-placeholder", !!isPlaceholder);
   };
   
-  const getSelectedThemeId = () =>
-    detailEl.querySelector('input[name="pack-theme"]:checked')?.dataset?.themeId || "";
+  const getSelectedThemeId = () => {
+    const fromRadio = detailEl.querySelector('input[name="pack-theme"]:checked')?.dataset?.themeId;
+    if (fromRadio) return fromRadio;
+    if (product.hasNamePreview) return product.previewThemeId || "engraved";
+    return "";
+  };
+
+  const getActivePreviewTheme = () => {
+    if (product.hasNamePreview && !product.hasThemePreview) {
+      return {
+        ...ENGRAVED_CARD,
+        image: product.previewImage || ENGRAVED_CARD.image,
+      };
+    }
+    const id = getSelectedThemeId();
+    return PACK_THEMES.find((x) => x.id === id) || PACK_THEMES[0];
+  };
 
   const updateAgeDisplay = (textEl, imgEl, ageStr, withPrefix) => {
     const key = (ageStr || "").trim();
@@ -608,13 +812,11 @@ if (pos.bgWidth) el.style.width = pos.bgWidth;
 }
 
   const updateThemeImage = () => {
+    const theme = getActivePreviewTheme();
     const selected = detailEl.querySelector('input[name="pack-theme"]:checked');
-    const imgSrc = selected?.dataset?.themeImage;
-    const themeId = selected?.dataset?.themeId;
+    const imgSrc = selected?.dataset?.themeImage || theme?.image;
     if (themePreviewImg && imgSrc) themePreviewImg.src = imgSrc;
 
-    // 按主题切换名字/岁数位置（文字与插图共用）
-    const theme = PACK_THEMES.find((t) => t.id === themeId) || PACK_THEMES[0];
     if (theme?.overlay) {
       applyOverlayPosition(previewNameWrap, theme.overlay.name);
       applyOverlayPosition(previewAge, theme.overlay.age);
@@ -652,7 +854,7 @@ if (pos.bgWidth) el.style.width = pos.bgWidth;
   if (tagNames && tagCount) {
     const update = () => {
       const n = tagNames.value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean).length;
-      tagCount.textContent = n === 0 ? "0 names" : n === 1 ? "1 name" : `${n} names`;
+      tagCount.textContent = `Quantity: ${n}`;
       tagCount.classList.toggle("has-names", n > 0);
     };
     tagNames.addEventListener("input", update);
@@ -668,16 +870,16 @@ if (pos.bgWidth) el.style.width = pos.bgWidth;
       const qtyInput = document.getElementById("productQty");
       const qty = qtyInput ? (parseInt(qtyInput.value, 10) || 1) : 1;
 
-      if (!theme) {
-        alert("Please choose a pack theme.");
+      if (product.hasThemePreview && !theme) {
+        showNotice("Please choose a pack theme before adding to cart.", { title: "Which theme feels right?" });
         return;
       }
       if (!childName) {
-        alert("Please enter the birthday child's name.");
+        showNotice("Every wish card starts with a name — whose big day is it?", { title: "Who's the star today?" });
         return;
       }
       if (!childAge) {
-        alert("Please enter the child's age.");
+        showNotice("We use this on the wish card and print materials.", { title: "How many candles?" });
         return;
       }
 
@@ -686,7 +888,7 @@ if (pos.bgWidth) el.style.width = pos.bgWidth;
         const checked = detailEl.querySelectorAll(`.choose-checkbox[data-choose-group="${product.id}"]:checked`);
         selections = Array.from(checked).map((b) => b.value);
         if (selections.length !== product.chooseOptions.max) {
-          alert(`Please choose exactly ${product.chooseOptions.max} keepsakes (you picked ${selections.length}).`);
+          showNotice(`Please choose exactly ${product.chooseOptions.max} keepsakes (you picked ${selections.length}).`, { title: "Pick your favourites" });
           return;
         }
       }
@@ -698,17 +900,15 @@ if (pos.bgWidth) el.style.width = pos.bgWidth;
           .map((s) => s.trim())
           .filter(Boolean);
         if (tagNamesList.length === 0) {
-          alert("Please enter at least one name for the name tags (one per line).");
+          showNotice("Add at least one guest name (one per line) for the 3D name tags.", { title: "Who gets a name tag?" });
           return;
         }
       }
 
       // 整理给商家看的个性化信息
-      const parts = [
-        `Theme: ${theme}`,
-        `Child: ${childName}`,
-        `Age: ${childAge}`,
-      ];
+      const parts = [];
+      if (theme) parts.push(`Theme: ${theme}`);
+      parts.push(`Child: ${childName}`, `Age: ${childAge}`);
       if (selections.length) parts.push(`Keepsakes: ${selections.join(", ")}`);
       if (tagNamesList.length) parts.push(`Name tags (${tagNamesList.length}): ${tagNamesList.join(", ")}`);
 
@@ -736,16 +936,6 @@ function renderCart() {
   const itemsEl = document.getElementById("cartItems");
   const countEl = document.getElementById("cartCount");
   const subTotalEl = document.getElementById("cartSubtotal");
-
-  // 小计低于 S$50 时自动取消已套用的折扣码
-  if (appliedDiscount && cartSubtotalCents() < MIN_DISCOUNT_SUBTOTAL_CENTS) {
-    appliedDiscount = null;
-    const discountMsg = document.getElementById("discountMessage");
-    if (discountMsg) {
-      discountMsg.textContent = "Discount removed — minimum subtotal is S$50.";
-      discountMsg.style.color = "#d32f2f";
-    }
-  }
 
   // 计算购物车商品总件数
   const totalItemsCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
@@ -898,19 +1088,6 @@ if (checkoutBtn) {
     // 1. 获取原价总分值 (Cents) — 仅用于购物车画面显示，实际折扣金额由后端重新计算
     const rawCents = cartSubtotalCents();
 
-    // 结账时若小计低于 S$50，不送折扣码
-    if (appliedDiscount && rawCents < MIN_DISCOUNT_SUBTOTAL_CENTS) {
-      appliedDiscount = null;
-      const discountMsg = document.getElementById("discountMessage");
-      if (discountMsg) {
-        discountMsg.textContent = "Discount removed — minimum subtotal is S$50.";
-        discountMsg.style.color = "#d32f2f";
-      }
-      if (typeof renderCart === "function") renderCart();
-      alert("Discount codes require a minimum subtotal of S$50.");
-      return;
-    }
-
     checkoutBtn.disabled = true;
     checkoutBtn.textContent = "Redirecting to payment…";
 
@@ -937,7 +1114,7 @@ if (checkoutBtn) {
       }
     } catch (err) {
       console.error(err);
-      alert("Sorry, checkout could not be started. " + (err.message || ""));
+      showNotice("Sorry, checkout could not be started. " + (err.message || "Please try again."), { title: "Checkout issue" });
       checkoutBtn.disabled = false;
       checkoutBtn.textContent = "Checkout";
     }
@@ -1031,17 +1208,6 @@ document.addEventListener("DOMContentLoaded", function() {
         return;
       }
 
-      // 未满 S$50 不可使用折扣码
-      const subCents = cartSubtotalCents();
-      if (subCents < MIN_DISCOUNT_SUBTOTAL_CENTS) {
-        appliedDiscount = null;
-        const need = ((MIN_DISCOUNT_SUBTOTAL_CENTS - subCents) / 100).toFixed(2);
-        discountMsg.textContent = `Discount codes require a minimum of S$50. Add S$${need} more.`;
-        discountMsg.style.color = "#d32f2f";
-        if (typeof renderCart === "function") renderCart();
-        return;
-      }
-
       applyBtn.disabled = true;
       applyBtn.textContent = "Checking…";
 
@@ -1121,11 +1287,11 @@ function initHeroCarousel() {
     });
   }
 
-  // 3 秒自动轮播切换一次
+  // 约 4.5 秒换一张，配合更长的淡入淡出
   setInterval(() => {
     currentIndex = (currentIndex + 1) % cards.length;
     updateCarousel();
-  }, 3000);
+  }, 4500);
 
   // 初始化首次位置
   updateCarousel();
@@ -1135,3 +1301,220 @@ function initHeroCarousel() {
 document.addEventListener("DOMContentLoaded", () => {
   initHeroCarousel();
 });
+
+
+// ---------------- Wish Cloud: slow walk on nav ----------------
+function initNavMascot() {
+  if (document.querySelector(".nav-mascot-track")) return;
+  const nav = document.querySelector(".nav");
+  if (!nav) return;
+
+  const track = document.createElement("div");
+  track.className = "nav-mascot-track";
+  track.setAttribute("aria-hidden", "true");
+  track.innerHTML = `
+    <div class="nav-mascot">
+      <img class="nav-mascot-img" src="images/wish-cloud.png" alt="">
+    </div>`;
+  nav.insertBefore(track, nav.firstChild);
+}
+
+// ---------------- Corner mascot + S$5 coupon (随机吉祥物 / 甩出隐藏) ----------------
+const MASCOT_HIDDEN_KEY = "jw-mascot-hidden";
+
+// 放你的 4 只吉祥物路径（文件名可改）
+const CORNER_MASCOTS = [
+  "images/mascot-1.png",
+  "images/mascot-2.png",
+  "images/mascot-3.png",
+  "images/mascot-4.png",
+];
+
+function pickRandomMascot(excludeSrc) {
+  const list = CORNER_MASCOTS.filter(Boolean);
+  if (list.length === 0) return "images/mascot.png";
+  if (list.length === 1) return list[0];
+  let next = list[Math.floor(Math.random() * list.length)];
+  // 召回时尽量换一只（若有 2 只以上）
+  if (excludeSrc && list.length > 1) {
+    let guard = 0;
+    while (next === excludeSrc && guard++ < 8) {
+      next = list[Math.floor(Math.random() * list.length)];
+    }
+  }
+  return next;
+}
+
+function initCornerMascot() {
+  if (document.querySelector(".mascot-track")) return;
+
+  const startSrc = pickRandomMascot();
+
+  const track = document.createElement("div");
+  track.className = "mascot-track";
+  track.innerHTML = `
+    <div class="mascot-container" id="cornerMascot" role="button" tabindex="0" aria-label="Flick to hide, tap for S$5 code">
+      <div class="coupon-popover">
+        <strong>S$5 off</strong>
+        <span>JUSTWISHES5</span>
+        <em>Tap to copy · flick to hide</em>
+      </div>
+      <div class="mascot-figure">
+        <img src="${startSrc}" class="mascot-full-body" alt="JW mascot" draggable="false">
+      </div>
+    </div>
+    <button type="button" class="mascot-recall" id="mascotRecall" title="Call a friend back" aria-label="Show mascot again">
+      <img src="${startSrc}" alt="" draggable="false">
+      <span>Come back</span>
+    </button>`;
+  document.body.appendChild(track);
+
+  const el = document.getElementById("cornerMascot");
+  const recallBtn = document.getElementById("mascotRecall");
+  if (!el) return;
+
+  const setHidden = (hidden) => {
+    track.classList.toggle("is-hidden", hidden);
+    try {
+      localStorage.setItem(MASCOT_HIDDEN_KEY, hidden ? "1" : "0");
+    } catch (e) {}
+  };
+
+  try {
+    if (localStorage.getItem(MASCOT_HIDDEN_KEY) === "1") {
+      track.classList.add("is-hidden");
+    }
+  } catch (e) {}
+
+  const copyCode = async () => {
+    const code = "JUSTWISHES5";
+    try {
+      await navigator.clipboard.writeText(code);
+      if (typeof showNotice === "function") {
+        showNotice("Code JUSTWISHES5 copied — S$5 off at checkout.", { title: "Yay, discount unlocked!" });
+      } else {
+        alert("JUSTWISHES5 copied! S$5 off.");
+      }
+    } catch (e) {
+      if (typeof showNotice === "function") {
+        showNotice("Please copy this code: JUSTWISHES5", { title: "Your S$5 code" });
+      } else {
+        prompt("Copy this code:", code);
+      }
+    }
+  };
+
+  // —— 与 demo 相同：快速一甩就飞走 ——
+  let isDragging = false;
+  let lastX = 0;
+  let lastY = 0;
+  let vx = 0;
+  let vy = 0;
+  let startX = 0;
+  let startY = 0;
+  let moved = false;
+
+  const point = (e) => {
+    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (e.changedTouches && e.changedTouches[0]) {
+      return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+  };
+
+  const onStart = (e) => {
+    if (el.classList.contains("flung-out") || track.classList.contains("is-hidden")) return;
+    isDragging = true;
+    moved = false;
+    const p = point(e);
+    startX = lastX = p.x;
+    startY = lastY = p.y;
+    vx = 0;
+    vy = 0;
+    el.style.animationPlayState = "paused";
+    el.classList.add("is-dragging");
+  };
+
+  const onMove = (e) => {
+    if (!isDragging) return;
+    const p = point(e);
+    vx = p.x - lastX;
+    vy = p.y - lastY;
+    lastX = p.x;
+    lastY = p.y;
+    if (Math.hypot(p.x - startX, p.y - startY) > 8) moved = true;
+    if (e.cancelable && e.type.startsWith("touch")) e.preventDefault();
+  };
+
+  const onEnd = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    el.classList.remove("is-dragging");
+
+    const speed = Math.hypot(vx, vy);
+
+    // demo：瞬时速度 > 12 判定为甩飞
+    if (speed > 12) {
+      const flyX = vx * 25;
+      const flyY = vy * 25;
+      const rotateDeg = vx * 15;
+
+      el.classList.add("flung-out");
+      el.style.transform = `translate(${flyX}px, ${flyY}px) rotate(${rotateDeg}deg) scale(0.5)`;
+
+      setTimeout(() => {
+        setHidden(true);
+        el.classList.remove("flung-out");
+        el.style.transform = "";
+        el.style.animationPlayState = "";
+      }, 520);
+      return;
+    }
+
+    // 没甩出去：继续走
+    el.style.animationPlayState = "running";
+    // 几乎没移动 → 点击复制折扣码
+    if (!moved) copyCode();
+  };
+
+  el.addEventListener("mousedown", onStart);
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onEnd);
+
+  el.addEventListener("touchstart", onStart, { passive: true });
+  window.addEventListener("touchmove", onMove, { passive: false });
+  window.addEventListener("touchend", onEnd);
+
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      copyCode();
+    }
+  });
+
+  const bodyImg = el.querySelector(".mascot-full-body");
+  const recallImg = recallBtn?.querySelector("img");
+
+  recallBtn?.addEventListener("click", () => {
+    const current = bodyImg?.getAttribute("src") || "";
+    const next = pickRandomMascot(current);
+    if (bodyImg) bodyImg.src = next;
+    if (recallImg) recallImg.src = next;
+
+    setHidden(false);
+    el.classList.remove("flung-out");
+    el.style.transform = "";
+    el.style.animationPlayState = "running";
+    track.classList.add("is-arriving");
+    setTimeout(() => track.classList.remove("is-arriving"), 500);
+  });
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  initNavMascot();
+  initCornerMascot();
+});
+if (document.readyState !== "loading") {
+  try { initNavMascot(); initCornerMascot(); } catch (e) {}
+}
