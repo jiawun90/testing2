@@ -2112,14 +2112,15 @@ body.jw-notice-open {
   .mascot-full-body { animation: none; }
 }
 
-/* ---------- Floating 3D GLB mascot (free walk, no frame) ---------- */
+/* ---------- Floating 3D GLB mascot (free walk, upright bubble) ---------- */
 .glb-mascot-track {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 8px;
-  height: 150px;
-  z-index: 90;
+  /* 抬高，避免被 footer 挡住下半身 */
+  bottom: 72px;
+  height: 160px;
+  z-index: 95;
   pointer-events: none;
   overflow: visible;
 }
@@ -2127,68 +2128,65 @@ body.jw-notice-open {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 120px;
-  height: 145px;
+  width: 130px;
+  height: 155px;
   pointer-events: auto;
   cursor: pointer;
-  /* 无白框、无边框 */
   background: transparent;
   border: none;
   box-shadow: none;
-  border-radius: 0;
   overflow: visible;
-  transform-origin: bottom center;
 }
-/* 左右走动（单程约 14s，与 JS flip 对齐） */
 .glb-mascot-track.is-walking .glb-mascot-container {
   animation: glbWalk 28s linear infinite;
 }
-.glb-mascot-container.is-flipped #mascotCanvas {
-  transform: scaleX(-1);
+.glb-mascot-figure {
+  width: 100%;
+  height: 100%;
+  /* 只包 canvas，气泡在 figure 外，永不镜像 */
 }
 #mascotCanvas {
   width: 100%;
   height: 100%;
   display: block;
-  touch-action: none;
-  filter: drop-shadow(0 8px 16px rgba(42, 51, 64, 0.18));
   background: transparent;
+  filter: drop-shadow(0 10px 18px rgba(42, 51, 64, 0.2));
+  pointer-events: auto;
 }
 .glb-mascot-hide {
   position: absolute;
-  top: 0;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   width: 22px;
   height: 22px;
   border: none;
   border-radius: 50%;
-  background: rgba(42, 51, 64, 0.15);
+  background: rgba(42, 51, 64, 0.18);
   color: #2a3340;
-  font-size: 0.95rem;
-  line-height: 1;
+  font-size: 0.9rem;
   cursor: pointer;
-  z-index: 3;
+  z-index: 5;
   opacity: 0;
   transition: opacity 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  pointer-events: auto;
 }
 .glb-mascot-container:hover .glb-mascot-hide {
   opacity: 1;
 }
 .glb-mascot-hide:hover {
-  background: rgba(232, 93, 142, 0.35);
+  background: rgba(232, 93, 142, 0.4);
   color: #fff;
 }
 .glb-mascot-recall {
   position: fixed;
-  bottom: 16px;
+  bottom: 24px;
   right: 16px;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
   padding: 0.5rem 1rem;
   border: 2px solid #ffd166;
   border-radius: 999px;
@@ -2199,23 +2197,24 @@ body.jw-notice-open {
   font-size: 0.78rem;
   font-weight: 600;
   color: #6b4c9a;
-  z-index: 91;
+  z-index: 96;
 }
 .glb-mascot-track.is-hidden {
-  height: 0;
   pointer-events: none;
+  height: 0;
+  bottom: 0;
 }
 .glb-mascot-track.is-hidden .glb-mascot-container {
   display: none;
   animation: none;
 }
-/* 折扣气泡 — 始终正向（不随翻转镜像） */
+
+/* 气泡：在角色上方，始终正向，不受转向影响 */
 .glb-coupon-bubble {
   position: absolute;
-  bottom: 100%;
+  bottom: calc(100% - 8px);
   left: 50%;
-  transform: translateX(-50%) scale(0.6);
-  margin-bottom: 6px;
+  transform: translateX(-50%) translateY(6px) scale(0.85);
   padding: 8px 12px;
   background: #fff;
   border: 2px solid #ffd166;
@@ -2225,21 +2224,14 @@ body.jw-notice-open {
   text-align: center;
   opacity: 0;
   pointer-events: none;
-  z-index: 4;
-  transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.3s;
+  z-index: 6;
+  transition: transform 0.3s cubic-bezier(0.34, 1.35, 0.64, 1), opacity 0.25s;
   direction: ltr;
   unicode-bidi: isolate;
 }
-.glb-mascot-container.is-flipped .glb-coupon-bubble {
-  /* 画布翻了，气泡再翻一次保持文字正向 */
-  transform: translateX(-50%) scaleX(-1) scale(0.6);
-}
 .glb-coupon-bubble.is-show {
   opacity: 1;
-  transform: translateX(-50%) scale(1);
-}
-.glb-mascot-container.is-flipped .glb-coupon-bubble.is-show {
-  transform: translateX(-50%) scaleX(-1) scale(1);
+  transform: translateX(-50%) translateY(0) scale(1);
 }
 .glb-coupon-bubble strong {
   display: block;
@@ -2262,34 +2254,49 @@ body.jw-notice-open {
   position: absolute;
   left: 50%;
   bottom: -7px;
-  transform: translateX(-50%);
+  margin-left: -7px;
   border: 7px solid transparent;
   border-top-color: #ffd166;
 }
+
 @keyframes glbWalk {
-  0%   { left: 2%; }
-  49%  { left: calc(100% - 130px); }
-  50%  { left: calc(100% - 130px); }
-  99%  { left: 2%; }
-  100% { left: 2%; }
+  0%   { left: 4%; }
+  49%  { left: calc(100% - 140px); }
+  50%  { left: calc(100% - 140px); }
+  99%  { left: 4%; }
+  100% { left: 4%; }
 }
+
+/* footer 不要裁切 fixed 吉祥物 */
+.site-footer {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+body {
+  overflow-x: hidden;
+}
+
 @media (max-width: 520px) {
-  .glb-mascot-track { height: 120px; }
+  .glb-mascot-track {
+    bottom: 64px;
+    height: 130px;
+  }
   .glb-mascot-container {
-    width: 96px;
-    height: 115px;
+    width: 100px;
+    height: 120px;
   }
   @keyframes glbWalk {
-    0%   { left: 2%; }
-    49%  { left: calc(100% - 100px); }
-    50%  { left: calc(100% - 100px); }
-    99%  { left: 2%; }
-    100% { left: 2%; }
+    0%   { left: 3%; }
+    49%  { left: calc(100% - 108px); }
+    50%  { left: calc(100% - 108px); }
+    99%  { left: 3%; }
+    100% { left: 3%; }
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .glb-mascot-track.is-walking .glb-mascot-container {
     animation: none;
-    left: 12%;
+    left: 10%;
   }
 }
