@@ -2112,109 +2112,114 @@ body.jw-notice-open {
   .mascot-full-body { animation: none; }
 }
 
-
-/* Hide legacy 2D corner / nav mascots (replaced by GLB) */
-.mascot-track,
-.nav-mascot-track,
-.mascot-section {
-  display: none !important;
-}
-
-/* ---------- Floating GLB mascot (walks along bottom) ---------- */
+/* ---------- Floating 3D GLB mascot (bottom-right) ---------- */
 .glb-mascot-track {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 140px;
-  pointer-events: none;
+  bottom: 16px;
+  right: 16px;
   z-index: 90;
-  overflow: visible;
+  width: 140px;
+  height: 168px;
+  pointer-events: none;
 }
 .glb-mascot-container {
-  position: absolute;
-  bottom: 8px;
-  left: 12px;
-  width: 110px;
-  height: 130px;
-  pointer-events: auto;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  filter: drop-shadow(0 8px 16px rgba(42, 51, 64, 0.18));
-  transition: opacity 0.35s ease, transform 0.35s ease;
-}
-.glb-mascot-container.is-dragging {
-  cursor: grabbing;
-  z-index: 95;
-}
-.glb-mascot-container.is-hidden {
-  opacity: 0;
-  transform: scale(0.4) translateY(40px);
-  pointer-events: none;
-}
-#mascotCanvas {
-  display: block;
+  position: relative;
   width: 100%;
   height: 100%;
-  background: transparent;
+  pointer-events: auto;
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(255,245,249,0.95) 100%);
+  box-shadow: 0 10px 28px rgba(42, 51, 64, 0.14);
+  border: 1.5px solid rgba(232, 93, 142, 0.2);
+  overflow: hidden;
+  animation: glbMascotFloat 4s ease-in-out infinite;
 }
+#mascotCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+#mascotCanvas:active { cursor: grabbing; }
 .glb-mascot-hide {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 22px;
-  height: 22px;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
   border: none;
   border-radius: 50%;
-  background: rgba(42, 51, 64, 0.55);
-  color: #fff;
-  font-size: 14px;
+  background: rgba(42, 51, 64, 0.12);
+  color: var(--ink, #2a3340);
+  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
-  pointer-events: auto;
   z-index: 2;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
-.glb-mascot-container:hover .glb-mascot-hide {
-  opacity: 1;
+.glb-mascot-hide:hover {
+  background: rgba(232, 93, 142, 0.25);
 }
 .glb-mascot-recall {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
-  display: none;
+  bottom: 0;
+  right: 0;
+  display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 6px 12px;
+  padding: 0.45rem 0.9rem;
   border: 2px solid #ffd166;
   border-radius: 999px;
   background: #fff;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   cursor: pointer;
   pointer-events: auto;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: #6b4c9a;
-  font-family: var(--font-body, system-ui, sans-serif);
 }
 .glb-mascot-track.is-hidden .glb-mascot-container {
   display: none;
 }
-.glb-mascot-track.is-hidden .glb-mascot-recall {
-  display: inline-flex;
+.glb-mascot-track.is-hidden {
+  width: auto;
+  height: auto;
+}
+.glb-mascot-track:not(.is-ready) .glb-mascot-container::after {
+  content: "…";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #ccc;
+  pointer-events: none;
+}
+.glb-mascot-track.is-ready .glb-mascot-container::after {
+  display: none;
+}
+.glb-mascot-track.is-error .glb-mascot-container::after {
+  content: "!";
+  color: #e85d8e;
+}
+@keyframes glbMascotFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 @media (max-width: 520px) {
-  .glb-mascot-track { height: 110px; }
-  .glb-mascot-container {
-    width: 88px;
-    height: 104px;
-    bottom: 6px;
+  .glb-mascot-track {
+    width: 110px;
+    height: 132px;
+    bottom: 10px;
+    right: 8px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .glb-mascot-container {
-    transition: none;
-  }
+  .glb-mascot-container { animation: none; }
 }
