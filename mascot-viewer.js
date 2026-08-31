@@ -1,8 +1,5 @@
 /**
- * JW Just Wishes — free-roaming 3D mascot
- * - No frame, walks along bottom above footer
- * - Face turns via 3D rotation (bubble text stays upright)
- * - Occasional coupon speech bubble
+ * JW Just Wishes — free-roaming 3D mascot (full body, above footer)
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -28,8 +25,10 @@ if (!canvas || !track || !container) {
   renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
-  camera.position.set(0, 0.9, 2.5);
+  // 拉远 + 略俯视，整只入画
+  const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 50);
+  camera.position.set(0, 1.2, 3.6);
+  camera.lookAt(0, 0.7, 0);
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.75));
   scene.add(new THREE.HemisphereLight(0xfff8f0, 0x9999aa, 0.85));
@@ -38,19 +37,18 @@ if (!canvas || !track || !container) {
   scene.add(key);
 
   function resize() {
-    const w = canvas.clientWidth || 120;
-    const h = canvas.clientHeight || 140;
+    const w = canvas.clientWidth || 160;
+    const h = canvas.clientHeight || 190;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h, false);
   }
   window.addEventListener('resize', resize);
-  // 等布局完成后再量一次
   requestAnimationFrame(resize);
 
   let mixer = null;
   let modelRoot = null;
-  let faceSign = 1; // 1 = 朝右, -1 = 朝左
+  let faceSign = 1;
   const clock = new THREE.Clock();
 
   const dracoLoader = new DRACOLoader();
@@ -67,11 +65,12 @@ if (!canvas || !track || !container) {
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      const scale = 1.55 / maxDim;
+      const scale = 1.2 / maxDim;
       modelRoot.scale.setScalar(scale);
       modelRoot.position.sub(center.multiplyScalar(scale));
       modelRoot.position.y = 0;
       scene.add(modelRoot);
+      camera.lookAt(0, size.y * scale * 0.42, 0);
 
       if (gltf.animations?.length) {
         mixer = new THREE.AnimationMixer(modelRoot);
@@ -90,7 +89,6 @@ if (!canvas || !track || !container) {
     }
   );
 
-  // 鼠标轻微看向
   let mouseX = 0;
   document.addEventListener('mousemove', (e) => {
     mouseX = (e.clientX / window.innerWidth) * 2 - 1;
@@ -101,20 +99,17 @@ if (!canvas || !track || !container) {
     const dt = clock.getDelta();
     if (mixer) mixer.update(dt);
     if (modelRoot) {
-      // 朝向：走路方向 + 轻微看鼠标
-      const baseY = faceSign > 0 ? 0.25 : Math.PI - 0.25;
-      const targetY = baseY + mouseX * 0.2 * faceSign;
+      const baseY = faceSign > 0 ? 0.2 : Math.PI - 0.2;
+      const targetY = baseY + mouseX * 0.15 * faceSign;
       modelRoot.rotation.y = THREE.MathUtils.lerp(modelRoot.rotation.y, targetY, 0.06);
     }
     renderer.render(scene, camera);
   }
   animate();
 
-  // CSS 动画 28s 一轮：0–50% 向右，50–100% 向左 → 在 50% 处转身
   const WALK_MS = 28000;
   function startFaceSync() {
     const half = WALK_MS / 2;
-    // 与 animation 开始对齐
     const t0 = performance.now();
     function sync() {
       const elapsed = (performance.now() - t0) % WALK_MS;
@@ -137,19 +132,14 @@ if (!canvas || !track || !container) {
     bubble.querySelector('strong').textContent = line.title;
     bubble.querySelector('span').textContent = line.code;
     bubble.classList.add('is-show');
-    bubble.setAttribute('aria-hidden', 'false');
-    setTimeout(() => {
-      bubble.classList.remove('is-show');
-      bubble.setAttribute('aria-hidden', 'true');
-    }, 4800);
+    setTimeout(() => bubble.classList.remove('is-show'), 4800);
   }
 
   function scheduleCouponBubble() {
-    const first = 6000 + Math.random() * 6000;
     setTimeout(function tick() {
       showCouponBubble();
       setTimeout(tick, 22000 + Math.random() * 18000);
-    }, first);
+    }, 6000 + Math.random() * 5000);
   }
 
   container.addEventListener('click', (e) => {

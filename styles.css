@@ -2112,15 +2112,14 @@ body.jw-notice-open {
   .mascot-full-body { animation: none; }
 }
 
-/* ---------- Floating 3D GLB mascot (free walk, upright bubble) ---------- */
+/* ---------- Floating 3D mascot：相对视口，永远看得见 ---------- */
 .glb-mascot-track {
   position: fixed;
   left: 0;
   right: 0;
-  /* 抬高，避免被 footer 挡住下半身 */
-  bottom: 72px;
-  height: 160px;
-  z-index: 95;
+  bottom: 16px;          /* 贴视口底部，不跟 footer 文档流 */
+  height: 200px;
+  z-index: 9999;         /* 盖过 footer / nav */
   pointer-events: none;
   overflow: visible;
 }
@@ -2128,13 +2127,12 @@ body.jw-notice-open {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 130px;
-  height: 155px;
+  width: 150px;
+  height: 185px;
   pointer-events: auto;
   cursor: pointer;
   background: transparent;
   border: none;
-  box-shadow: none;
   overflow: visible;
 }
 .glb-mascot-track.is-walking .glb-mascot-container {
@@ -2143,25 +2141,25 @@ body.jw-notice-open {
 .glb-mascot-figure {
   width: 100%;
   height: 100%;
-  /* 只包 canvas，气泡在 figure 外，永不镜像 */
+  overflow: visible;
 }
 #mascotCanvas {
   width: 100%;
   height: 100%;
   display: block;
   background: transparent;
-  filter: drop-shadow(0 10px 18px rgba(42, 51, 64, 0.2));
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25));
   pointer-events: auto;
 }
 .glb-mascot-hide {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 0;
+  right: 0;
   width: 22px;
   height: 22px;
   border: none;
   border-radius: 50%;
-  background: rgba(42, 51, 64, 0.18);
+  background: rgba(42, 51, 64, 0.2);
   color: #2a3340;
   font-size: 0.9rem;
   cursor: pointer;
@@ -2174,16 +2172,14 @@ body.jw-notice-open {
   padding: 0;
   pointer-events: auto;
 }
-.glb-mascot-container:hover .glb-mascot-hide {
-  opacity: 1;
-}
+.glb-mascot-container:hover .glb-mascot-hide { opacity: 1; }
 .glb-mascot-hide:hover {
-  background: rgba(232, 93, 142, 0.4);
+  background: rgba(232, 93, 142, 0.45);
   color: #fff;
 }
 .glb-mascot-recall {
   position: fixed;
-  bottom: 24px;
+  bottom: 20px;
   right: 16px;
   display: inline-flex;
   align-items: center;
@@ -2197,29 +2193,26 @@ body.jw-notice-open {
   font-size: 0.78rem;
   font-weight: 600;
   color: #6b4c9a;
-  z-index: 96;
+  z-index: 10000;
 }
 .glb-mascot-track.is-hidden {
   pointer-events: none;
-  height: 0;
-  bottom: 0;
+  visibility: hidden;
 }
 .glb-mascot-track.is-hidden .glb-mascot-container {
   display: none;
   animation: none;
 }
-
-/* 气泡：在角色上方，始终正向，不受转向影响 */
 .glb-coupon-bubble {
   position: absolute;
-  bottom: calc(100% - 8px);
+  bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%) translateY(6px) scale(0.85);
   padding: 8px 12px;
   background: #fff;
   border: 2px solid #ffd166;
   border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
   white-space: nowrap;
   text-align: center;
   opacity: 0;
@@ -2258,45 +2251,27 @@ body.jw-notice-open {
   border: 7px solid transparent;
   border-top-color: #ffd166;
 }
-
 @keyframes glbWalk {
-  0%   { left: 4%; }
-  49%  { left: calc(100% - 140px); }
-  50%  { left: calc(100% - 140px); }
-  99%  { left: 4%; }
-  100% { left: 4%; }
+  0%   { left: 3%; }
+  49%  { left: calc(100% - 160px); }
+  50%  { left: calc(100% - 160px); }
+  99%  { left: 3%; }
+  100% { left: 3%; }
 }
-
-/* footer 不要裁切 fixed 吉祥物 */
-.site-footer {
-  position: relative;
-  z-index: 1;
-  overflow: visible;
-}
-body {
-  overflow-x: hidden;
-}
-
 @media (max-width: 520px) {
-  .glb-mascot-track {
-    bottom: 64px;
-    height: 130px;
-  }
-  .glb-mascot-container {
-    width: 100px;
-    height: 120px;
-  }
+  .glb-mascot-track { height: 160px; bottom: 12px; }
+  .glb-mascot-container { width: 120px; height: 150px; }
   @keyframes glbWalk {
-    0%   { left: 3%; }
-    49%  { left: calc(100% - 108px); }
-    50%  { left: calc(100% - 108px); }
-    99%  { left: 3%; }
-    100% { left: 3%; }
+    0%   { left: 2%; }
+    49%  { left: calc(100% - 128px); }
+    50%  { left: calc(100% - 128px); }
+    99%  { left: 2%; }
+    100% { left: 2%; }
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .glb-mascot-track.is-walking .glb-mascot-container {
     animation: none;
-    left: 10%;
+    left: 8%;
   }
 }
