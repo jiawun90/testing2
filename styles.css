@@ -2112,67 +2112,84 @@ body.jw-notice-open {
   .mascot-full-body { animation: none; }
 }
 
-/* ---------- Floating 3D GLB mascot (bottom-right) ---------- */
+/* ---------- Floating 3D GLB mascot (free walk, no frame) ---------- */
 .glb-mascot-track {
   position: fixed;
-  bottom: 16px;
-  right: 16px;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  height: 150px;
   z-index: 90;
-  width: 140px;
-  height: 168px;
   pointer-events: none;
+  overflow: visible;
 }
 .glb-mascot-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 120px;
+  height: 145px;
   pointer-events: auto;
-  border-radius: 20px;
-  background: linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(255,245,249,0.95) 100%);
-  box-shadow: 0 10px 28px rgba(42, 51, 64, 0.14);
-  border: 1.5px solid rgba(232, 93, 142, 0.2);
-  overflow: hidden;
-  animation: glbMascotFloat 4s ease-in-out infinite;
+  cursor: pointer;
+  /* 无白框、无边框 */
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  transform-origin: bottom center;
+}
+/* 左右走动（单程约 14s，与 JS flip 对齐） */
+.glb-mascot-track.is-walking .glb-mascot-container {
+  animation: glbWalk 28s linear infinite;
+}
+.glb-mascot-container.is-flipped #mascotCanvas {
+  transform: scaleX(-1);
 }
 #mascotCanvas {
   width: 100%;
   height: 100%;
   display: block;
   touch-action: none;
-  cursor: grab;
+  filter: drop-shadow(0 8px 16px rgba(42, 51, 64, 0.18));
+  background: transparent;
 }
-#mascotCanvas:active { cursor: grabbing; }
 .glb-mascot-hide {
   position: absolute;
-  top: 4px;
+  top: 0;
   right: 4px;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border: none;
   border-radius: 50%;
-  background: rgba(42, 51, 64, 0.12);
-  color: var(--ink, #2a3340);
-  font-size: 1rem;
+  background: rgba(42, 51, 64, 0.15);
+  color: #2a3340;
+  font-size: 0.95rem;
   line-height: 1;
   cursor: pointer;
-  z-index: 2;
-  pointer-events: auto;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
 }
+.glb-mascot-container:hover .glb-mascot-hide {
+  opacity: 1;
+}
 .glb-mascot-hide:hover {
-  background: rgba(232, 93, 142, 0.25);
+  background: rgba(232, 93, 142, 0.35);
+  color: #fff;
 }
 .glb-mascot-recall {
-  position: absolute;
-  bottom: 0;
-  right: 0;
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.45rem 0.9rem;
+  padding: 0.5rem 1rem;
   border: 2px solid #ffd166;
   border-radius: 999px;
   background: #fff;
@@ -2182,44 +2199,97 @@ body.jw-notice-open {
   font-size: 0.78rem;
   font-weight: 600;
   color: #6b4c9a;
+  z-index: 91;
+}
+.glb-mascot-track.is-hidden {
+  height: 0;
+  pointer-events: none;
 }
 .glb-mascot-track.is-hidden .glb-mascot-container {
   display: none;
+  animation: none;
 }
-.glb-mascot-track.is-hidden {
-  width: auto;
-  height: auto;
-}
-.glb-mascot-track:not(.is-ready) .glb-mascot-container::after {
-  content: "…";
+/* 折扣气泡 — 始终正向（不随翻转镜像） */
+.glb-coupon-bubble {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  color: #ccc;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) scale(0.6);
+  margin-bottom: 6px;
+  padding: 8px 12px;
+  background: #fff;
+  border: 2px solid #ffd166;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+  text-align: center;
+  opacity: 0;
   pointer-events: none;
+  z-index: 4;
+  transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.3s;
+  direction: ltr;
+  unicode-bidi: isolate;
 }
-.glb-mascot-track.is-ready .glb-mascot-container::after {
-  display: none;
+.glb-mascot-container.is-flipped .glb-coupon-bubble {
+  /* 画布翻了，气泡再翻一次保持文字正向 */
+  transform: translateX(-50%) scaleX(-1) scale(0.6);
 }
-.glb-mascot-track.is-error .glb-mascot-container::after {
-  content: "!";
-  color: #e85d8e;
+.glb-coupon-bubble.is-show {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
 }
-@keyframes glbMascotFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+.glb-mascot-container.is-flipped .glb-coupon-bubble.is-show {
+  transform: translateX(-50%) scaleX(-1) scale(1);
+}
+.glb-coupon-bubble strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b4c9a;
+}
+.glb-coupon-bubble span {
+  display: inline-block;
+  margin-top: 0.2rem;
+  background: #fff8e7;
+  color: #e08e00;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+.glb-coupon-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: #ffd166;
+}
+@keyframes glbWalk {
+  0%   { left: 2%; }
+  49%  { left: calc(100% - 130px); }
+  50%  { left: calc(100% - 130px); }
+  99%  { left: 2%; }
+  100% { left: 2%; }
 }
 @media (max-width: 520px) {
-  .glb-mascot-track {
-    width: 110px;
-    height: 132px;
-    bottom: 10px;
-    right: 8px;
+  .glb-mascot-track { height: 120px; }
+  .glb-mascot-container {
+    width: 96px;
+    height: 115px;
+  }
+  @keyframes glbWalk {
+    0%   { left: 2%; }
+    49%  { left: calc(100% - 100px); }
+    50%  { left: calc(100% - 100px); }
+    99%  { left: 2%; }
+    100% { left: 2%; }
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .glb-mascot-container { animation: none; }
+  .glb-mascot-track.is-walking .glb-mascot-container {
+    animation: none;
+    left: 12%;
+  }
 }
