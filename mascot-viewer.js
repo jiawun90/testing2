@@ -1,6 +1,6 @@
 /**
  * JW Just Wishes — 3D mascot
- * 全身可见 · 可拖 · 可甩走 · 可召回 · 折扣气泡
+ * 全身 · 拖动位移 · 拖动旋转 360° · 甩走 · 送折扣码
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -12,6 +12,14 @@ const container = document.getElementById('glbMascotContainer');
 const hideBtn = document.getElementById('glbMascotHide');
 const recallBtn = document.getElementById('glbMascotRecall');
 const bubble = document.getElementById('glbCouponBubble');
+
+// ★ 吉祥物送出的折扣码（请在后端 / KV 里生成同样的码，并设满 S$50）
+// 用完可改成新码，或做成「每人每天一次」由后端发放
+const MASCOT_CODES = [
+  { code: 'WISHY5', label: 'S$5 off', min: 'Min. S$50' },
+  { code: 'WISHY10', label: '10% off', min: 'Min. S$50' },
+  { code: 'HELLO', label: 'Welcome deal', min: 'Min. S$50' },
+];
 
 if (!canvas || !track || !container) {
   console.warn('[mascot] missing DOM');
@@ -42,6 +50,8 @@ if (!canvas || !track || !container) {
 
   let mixer = null;
   let modelRoot = null;
+  let rotY = 0.2;
+  let rotX = 0;
   let faceSign = 1;
   const clock = new THREE.Clock();
 
@@ -51,22 +61,20 @@ if (!canvas || !track || !container) {
   const loader = new GLTFLoader();
   loader.setDRACOLoader(dracoLoader);
 
-  /** 把整只模型装进镜头 */
   function frameModel(root) {
     const box = new THREE.Box3().setFromObject(root);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    root.position.sub(center); // 原点居中
+    root.position.sub(center);
 
-    const maxSize = Math.max(size.x, size.y, size.z) || 1;
-    const fitH = size.y || maxSize;
-    const fitW = Math.max(size.x, size.z) || maxSize;
+    const fitH = size.y || 1;
+    const fitW = Math.max(size.x, size.z) || 1;
     const fov = camera.fov * (Math.PI / 180);
-    const fitHeightDist = (fitH * 0.5) / Math.tan(fov * 0.5);
-    const fitWidthDist = (fitW * 0.5) / Math.tan(fov * 0.5) / Math.max(camera.aspect, 0.1);
-    const dist = Math.max(fitHeightDist, fitWidthDist) * 1.35;
+    const distH = (fitH * 0.5) / Math.tan(fov * 0.5);
+    const distW = (fitW * 0.5) / Math.tan(fov * 0.5) / Math.max(camera.aspect, 0.1);
+    const dist = Math.max(distH, distW) * 1.4;
 
-    camera.position.set(0, size.y * 0.05, dist);
+    camera.position.set(0, size.y * 0.02, dist);
     camera.near = dist / 100;
     camera.far = dist * 100;
     camera.lookAt(0, 0, 0);
@@ -77,7 +85,6 @@ if (!canvas || !track || !container) {
     'images/mascot/model.glb',
     (gltf) => {
       modelRoot = gltf.scene;
-      // 先统一缩放到约 1.5 单位高，再 frame
       const box0 = new THREE.Box3().setFromObject(modelRoot);
       const s0 = box0.getSize(new THREE.Vector3());
       const m0 = Math.max(s0.x, s0.y, s0.z) || 1;
@@ -92,7 +99,7 @@ if (!canvas || !track || !container) {
       }
 
       track.classList.add('is-ready', 'is-walking');
-      console.log('[mascot] loaded + framed');
+      console.log('[mascot] loaded');
       scheduleCouponBubble();
       startFaceSync();
     },
@@ -103,22 +110,14 @@ if (!canvas || !track || !container) {
     }
   );
 
-  let mouseX = 0;
-  document.addEventListener('mousemove', (e) => {
-    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-  });
-
   function animate() {
     requestAnimationFrame(animate);
     const dt = clock.getDelta();
     if (mixer) mixer.update(dt);
-    if (modelRoot && !dragging) {
-      const baseY = faceSign > 0 ? 0.15 : Math.PI - 0.15;
-      modelRoot.rotation.y = THREE.MathUtils.lerp(
-        modelRoot.rotation.y,
-        baseY + mouseX * 0.12 * faceSign,
-        0.05
-      );
+    if (modelRoot) {
+      // 360°：rotY 无限制累加
+      modelRoot.rotation.y = rotY;
+      modelRoot.rotation.x = THREE.MathUtils.clamp(rotX, -0.45, 0.45);
     }
     renderer.render(scene, camera);
   }
@@ -129,23 +128,29 @@ if (!canvas || !track || !container) {
     const half = WALK_MS / 2;
     const t0 = performance.now();
     (function sync() {
-      if (!dragging && track.classList.contains('is-walking')) {
+      if (!dragging && track.classList.contains('is-walking') && !userRotating) {
         const elapsed = (performance.now() - t0) % WALK_MS;
         faceSign = elapsed < half ? 1 : -1;
+        // 走路时缓慢转向
+        const target = faceSign > 0 ? 0.2 : Math.PI - 0.2;
+        rotY += (target - rotY) * 0.03;
       }
       requestAnimationFrame(sync);
     })();
   }
 
-  // —— 拖拽 / 甩走 ——
+  // —— 拖：移动位置 + 旋转 360° ——
+  // 以按下后位移判断：移动多 = 移位；若按住并左右拖，同时旋转
   let dragging = false;
+  let userRotating = false;
   let lastX = 0;
   let lastY = 0;
   let lastT = 0;
   let vx = 0;
   let vy = 0;
-  let posX = null; // px，手动模式
+  let posX = null;
   let posY = null;
+  let moved = false;
 
   function setManualPos(x, y) {
     const maxX = window.innerWidth - container.offsetWidth;
@@ -160,8 +165,11 @@ if (!canvas || !track || !container) {
 
   function onPointerDown(e) {
     if (e.target === hideBtn || hideBtn?.contains(e.target)) return;
+    if (e.target.closest?.('.glb-coupon-bubble')) return;
     e.preventDefault();
     dragging = true;
+    moved = false;
+    userRotating = true;
     track.classList.remove('is-walking');
     track.classList.add('is-dragging');
     container.classList.add('is-dragging');
@@ -172,35 +180,39 @@ if (!canvas || !track || !container) {
     container.style.animation = 'none';
     setManualPos(posX, posY);
 
-    lastX = e.clientX ?? e.touches?.[0]?.clientX;
-    lastY = e.clientY ?? e.touches?.[0]?.clientY;
+    lastX = e.clientX;
+    lastY = e.clientY;
     lastT = performance.now();
     vx = 0;
     vy = 0;
-
-    container.setPointerCapture?.(e.pointerId);
+    try {
+      container.setPointerCapture(e.pointerId);
+    } catch (_) {}
   }
 
   function onPointerMove(e) {
     if (!dragging) return;
-    const cx = e.clientX ?? e.touches?.[0]?.clientX;
-    const cy = e.clientY ?? e.touches?.[0]?.clientY;
-    if (cx == null) return;
+    const cx = e.clientX;
+    const cy = e.clientY;
     const now = performance.now();
     const dt = Math.max(now - lastT, 1);
-    vx = (cx - lastX) / dt;
-    vy = (cy - lastY) / dt;
     const dx = cx - lastX;
     const dy = cy - lastY;
+    vx = dx / dt;
+    vy = dy / dt;
+
+    // 水平拖 → 绕 Y 轴 360°（不限制）
+    rotY += dx * 0.012;
+    // 垂直拖 → 轻微俯仰
+    rotX += dy * 0.006;
+
+    // 同时移动位置
+    if (Math.abs(dx) > 1 || Math.abs(dy) > 1) moved = true;
+    setManualPos(posX + dx, posY + dy);
+
     lastX = cx;
     lastY = cy;
     lastT = now;
-    setManualPos(posX + dx, posY + dy);
-
-    // 拖的时候模型跟着转一点
-    if (modelRoot) {
-      modelRoot.rotation.y += dx * 0.01;
-    }
   }
 
   function flingAway() {
@@ -208,7 +220,7 @@ if (!canvas || !track || !container) {
     container.style.transition = 'transform 0.55s cubic-bezier(0.25, 0.8, 0.4, 1), opacity 0.55s ease';
     const dirX = vx >= 0 ? 1 : -1;
     const dirY = vy >= 0 ? 1 : -1;
-    container.style.transform = `translate(${dirX * 120}vw, ${dirY * 40}vh) rotate(${dirX * 25}deg) scale(0.3)`;
+    container.style.transform = `translate(${dirX * 120}vw, ${dirY * 40}vh) rotate(${dirX * 28}deg) scale(0.25)`;
     container.style.opacity = '0';
     setTimeout(() => {
       track.classList.add('is-hidden');
@@ -228,50 +240,94 @@ if (!canvas || !track || !container) {
   function onPointerUp(e) {
     if (!dragging) return;
     dragging = false;
+    userRotating = false;
     track.classList.remove('is-dragging');
     container.classList.remove('is-dragging');
-    container.releasePointerCapture?.(e.pointerId);
+    try {
+      container.releasePointerCapture(e.pointerId);
+    } catch (_) {}
 
-    const speed = Math.hypot(vx, vy); // px/ms
-    // 甩得够快 → 丢掉
+    const speed = Math.hypot(vx, vy);
     if (speed > 0.85) {
       flingAway();
       return;
     }
-    // 否则停在原地，可再拖；双击区域外不自动走
-    // 轻点：弹气泡
-    if (speed < 0.12) {
-      showCouponBubble();
+    // 轻点（几乎没移动）→ 送折扣码
+    if (!moved || speed < 0.1) {
+      giveDiscountCode();
     }
   }
+
+  // 滚轮也可 360 转
+  container.addEventListener(
+    'wheel',
+    (e) => {
+      e.preventDefault();
+      rotY += e.deltaY * 0.005;
+      userRotating = true;
+      track.classList.remove('is-walking');
+    },
+    { passive: false }
+  );
 
   container.addEventListener('pointerdown', onPointerDown);
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', onPointerUp);
   window.addEventListener('pointercancel', onPointerUp);
 
-  // —— 气泡 ——
-  const COUPON_LINES = [
-    { title: 'Got a code?', code: 'Min. S$50 to use' },
-    { title: 'Psst… coupon!', code: 'Ask us on WhatsApp' },
-    { title: 'Party soon?', code: 'Bulk order discounts' },
-    { title: 'Hello!', code: 'Try a code in the cart' },
-  ];
+  // —— 送折扣码 ——
+  let lastGivenCode = null;
 
-  function showCouponBubble() {
+  function giveDiscountCode() {
     if (!bubble || track.classList.contains('is-hidden')) return;
-    const line = COUPON_LINES[Math.floor(Math.random() * COUPON_LINES.length)];
-    bubble.querySelector('strong').textContent = line.title;
-    bubble.querySelector('span').textContent = line.code;
+    const item = MASCOT_CODES[Math.floor(Math.random() * MASCOT_CODES.length)];
+    lastGivenCode = item.code;
+
+    bubble.innerHTML = `
+      <strong>${item.label}</strong>
+      <span class="glb-code" data-code="${item.code}">${item.code}</span>
+      <em>${item.min} · tap code to copy</em>
+    `;
     bubble.classList.add('is-show');
-    setTimeout(() => bubble.classList.remove('is-show'), 4500);
+
+    // 尝试写入购物车折扣输入框
+    const input = document.getElementById('discountCodeInput');
+    if (input) {
+      input.value = item.code;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    // 点击码复制
+    const codeEl = bubble.querySelector('.glb-code');
+    if (codeEl) {
+      codeEl.style.cursor = 'pointer';
+      codeEl.title = 'Click to copy';
+      codeEl.onclick = async (ev) => {
+        ev.stopPropagation();
+        try {
+          await navigator.clipboard.writeText(item.code);
+          codeEl.textContent = 'Copied!';
+          setTimeout(() => {
+            codeEl.textContent = item.code;
+          }, 1200);
+        } catch (_) {
+          // fallback
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }
+      };
+    }
+
+    setTimeout(() => bubble.classList.remove('is-show'), 8000);
   }
 
   function scheduleCouponBubble() {
     setTimeout(function tick() {
-      if (!dragging && !track.classList.contains('is-hidden')) showCouponBubble();
-      setTimeout(tick, 24000 + Math.random() * 16000);
-    }, 8000);
+      if (!dragging && !track.classList.contains('is-hidden')) giveDiscountCode();
+      setTimeout(tick, 28000 + Math.random() * 20000);
+    }, 10000);
   }
 
   if (hideBtn) {
@@ -285,12 +341,11 @@ if (!canvas || !track || !container) {
     recallBtn.addEventListener('click', () => {
       track.classList.remove('is-hidden');
       recallBtn.hidden = true;
-      // 从右侧滚回来
-      posX = window.innerWidth - 160;
-      posY = window.innerHeight - 200;
+      posX = window.innerWidth - 180;
+      posY = window.innerHeight - 220;
       setManualPos(posX, posY);
       container.style.opacity = '0';
-      container.style.transform = 'translateX(80px) scale(0.5)';
+      container.style.transform = 'translateX(60px) scale(0.5)';
       requestAnimationFrame(() => {
         container.style.transition = 'transform 0.45s cubic-bezier(0.34,1.3,0.64,1), opacity 0.4s';
         container.style.opacity = '1';
